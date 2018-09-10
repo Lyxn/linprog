@@ -16,11 +16,14 @@ In the integer programming, the variables must be integers.
 
 #### Artificial Variable
 One can use artificial variables to convert inequaltiy to equality.
+
 e.g. `A * x <= b` iff `A * x + s = b, s>=0`.
 
 #### Basic Solution
 Let `A = [B D]` where `B` is not singular, if `xb = b / B` and `xb >= 0`, then the basic solution `xb` is feasible.
+
 Let `r = cb \ B`, where `c = [cb cd]`, if `rb * D <= cd` then `xb` is dual feasible.
+
 If `xb` is both primal and dual feasible, then it is optimum.
 
 #### Two Pharse Method
