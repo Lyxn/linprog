@@ -15,7 +15,10 @@ def test_revised():
     num_slack = 3
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
-    simplex_revised(c, A, b, basis)
+    print "\nTest Revised Simplex"
+    simplex_revised(c, A, b, basis, debug=True)
+    print "\nTest Two Phrase Method"
+    lp_primal(c, A, b, debug=True)
 
 
 def test_dual():
@@ -28,10 +31,11 @@ def test_dual():
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
-    simplex_dual(c, -A, -b, basis)
+    print "\nTest Dual Simplex"
+    simplex_dual(c, -A, -b, basis, debug=True)
 
 
-def test_dmp0_revised():
+def test_dwp0_revised():
     c = [-4, -1, -3, -2]
     b = [6, 4, 5, 1, 2, 6]
     A = [[2, 2, 1, 2], [0, 1, 2, 3], [2, 1, 0, 0], [0, 1, 0, 0], [0, 0, -1, 2], [0, 0, 1, 2]]
@@ -41,10 +45,12 @@ def test_dmp0_revised():
     num_slack = 6
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
-    print simplex_revised(c, A, b, basis)
+    print "\nTest Dantzig Wolfe 0"
+    #print simplex_revised(c, A, b, basis, debug=True)
+    print lp_primal(c, A, b, debug=True)
 
 
-def test_dmp0_dantzig():
+def test_dwp0_dantzig():
     c0 = [[-4, -1, 0, 0], [-3, -2, 0, 0]]
     b0 = [6, 4]
     b = [[5, 1], [2, 6]]
@@ -61,10 +67,11 @@ def test_dmp0_dantzig():
     L = [np.array(x) for x in L]
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
-    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis)
+    print "\nTest Dantzig Wolfe 0"
+    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True)
 
 
-def test_dmp1_dantzig():
+def test_dwp1_dantzig():
     c0 = [[-1, -2, 0, 0], [-4, -3, 0, 0]]
     b0 = [4, 3]
     b = [[4, 2], [2, 5]]
@@ -81,13 +88,14 @@ def test_dmp1_dantzig():
     L = [np.array(x) for x in L]
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
-    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis)
+    print "\nTest Dantzig Wolfe 1"
+    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True)
 
 
 if __name__ == "__main__":
     test_revised()
-    test_dual()
-    #test_dmp0_revised()
-    test_dmp0_dantzig()
-    #test_dmp1_dantzig()
+    #test_dual()
+    test_dwp0_revised()
+    test_dwp0_dantzig()
+    #test_dwp1_dantzig()
 
