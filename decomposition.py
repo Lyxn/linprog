@@ -4,8 +4,8 @@ import sys
 import numpy as np
 from scipy import linalg
 
-from simplex import *
-
+from simplex import simplex_revised
+from simplex import align_basis
 
 def check_size_dantzig(c, L, b0, A, b):
     is_equal_list = lambda x, y: len(x) == len(y) and all(x[i] == y[i] for i in range(len(x)))
@@ -132,12 +132,12 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
 
     # check problem 
     if not check_size_dantzig(c, L, b0, A, b):
-        info = "Size illegal c:%d L:%s b0:%s, A:%s b:%s\n\n" % (len(c), len(L), len(b0), len(A), len(b))
+        info = "Size illegal c:%d L:%s b0:%s, A:%s b:%s\n" % (len(c), len(L), len(b0), len(A), len(b))
         sys.stderr.write(info)
         return -1
     # check feasible
     if is_neg_any(b0) or any(is_neg_any(i) for i in b):
-        sys.stderr.write("Basis infeasible b0:%s b:%s\n\n" % (str(b0), str(b)))
+        sys.stderr.write("Basis infeasible b0:%s b:%s\n" % (str(b0), str(b)))
         return -1
     
     # problem size
@@ -232,7 +232,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
                 min_sub = z_sub
                 min_idx = i
         if min_idx is None:
-            sys.stderr.write("Problem solved\n\n")
+            sys.stderr.write("Problem solved\n")
             x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
             z_opt = x_opt.dot(c_tot)
             return z_opt, x_opt, lmbd_master
@@ -251,7 +251,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
             print "Master y_new\t%s" % str(y_new)
         pos_ind = [i for i in range(len(y_new)) if is_pos(y_new[i])]
         if len(pos_ind) == 0:
-            sys.stderr.write("Problem unbounded\n\n")
+            sys.stderr.write("Problem unbounded\n")
             return -2
         ratio = [x_master[i] / y_new[i] for i in pos_ind]
         min_ind = np.argmin(ratio)

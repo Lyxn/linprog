@@ -1,8 +1,11 @@
 #encode=utf8
 import numpy as np
 
-from simplex import *
-from decomposition import *
+from simplex import simplex_revised
+from simplex import simplex_dual
+from decomposition import simplex_dantzig_wolfe
+from linprog import linprog
+from linprog import linprog_primal
 
 
 def test_revised():
@@ -10,7 +13,11 @@ def test_revised():
     b = [2, 5, 6]
     A = [[2, 1, 1], [1, 2, 3], [2, 2, 1]]
     basis = [3, 4, 5]
+    c = np.array(c)
+    A = np.array(A)
     b = np.array(b)
+    print "\nTest linprog"
+    print linprog(c, A_ub=A, b_ub=b)
     basis = np.array(basis)
     num_slack = 3
     c = np.concatenate((c, np.zeros(num_slack)))
@@ -18,7 +25,7 @@ def test_revised():
     print "\nTest Revised Simplex"
     simplex_revised(c, A, b, basis, debug=True)
     print "\nTest Two Phrase Method"
-    lp_primal(c, A, b, debug=True)
+    linprog_primal(c, A, b, debug=True)
 
 
 def test_dual0():
@@ -60,8 +67,7 @@ def test_dwp0_revised():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print "\nTest Dantzig Wolfe 0"
-    #print simplex_revised(c, A, b, basis, debug=True)
-    print lp_primal(c, A, b, debug=True)
+    print linprog_primal(c, A, b, debug=True)
 
 
 def test_dwp0_dantzig():
@@ -107,10 +113,10 @@ def test_dwp1_dantzig():
 
 
 if __name__ == "__main__":
-    #test_revised()
+    test_revised()
     test_dual0()
-    #test_dual1()
-    #test_dwp0_revised()
-    #test_dwp0_dantzig()
-    #test_dwp1_dantzig()
+    test_dual1()
+    test_dwp0_revised()
+    test_dwp0_dantzig()
+    test_dwp1_dantzig()
 
