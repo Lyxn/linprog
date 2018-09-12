@@ -164,7 +164,7 @@ def simplex_dual(c, A, b, basis, **argv):
         if len(neg_ind) == 0:
             sys.stderr.write("Problem solved\n\n")
             return basis, align_basis(x_b, basis, col), lmbd
-        ind_neg = nonbasis[neg_ind[0]]
+        ind_neg = neg_ind[0]
         ind_out = basis[ind_neg]
         # pivot
         e_q = np.zeros(row)

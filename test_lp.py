@@ -21,7 +21,7 @@ def test_revised():
     lp_primal(c, A, b, debug=True)
 
 
-def test_dual():
+def test_dual0():
     c = [3, 4, 5]
     b = [5, 6]
     A = [[1, 2, 3], [2, 2, 1]]
@@ -32,7 +32,21 @@ def test_dual():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
     print "\nTest Dual Simplex"
-    simplex_dual(c, -A, -b, basis, debug=True)
+    print simplex_dual(c, -A, -b, basis, debug=True)
+
+
+def test_dual1():
+    c = [12, 8, 16, 12]
+    b = [-2, -3]
+    A = [[-2, -1, -4, 0], [-2, -2, 0, -4]]
+    basis = [4, 5]
+    b = np.array(b)
+    basis = np.array(basis)
+    num_slack = 2
+    c = np.concatenate((c, np.zeros(num_slack)))
+    A = np.concatenate((A, np.eye(num_slack)), axis=1)
+    print "\nTest Dual Simplex"
+    print simplex_dual(c, A, b, basis, debug=True, max_iter=10)
 
 
 def test_dwp0_revised():
@@ -93,9 +107,10 @@ def test_dwp1_dantzig():
 
 
 if __name__ == "__main__":
-    test_revised()
-    #test_dual()
-    test_dwp0_revised()
-    test_dwp0_dantzig()
+    #test_revised()
+    test_dual0()
+    #test_dual1()
+    #test_dwp0_revised()
+    #test_dwp0_dantzig()
     #test_dwp1_dantzig()
 
