@@ -170,7 +170,7 @@ def simplex_dual(c, A, b, basis, **argv):
         e_q = np.zeros(row)
         e_q[ind_neg] = 1
         u_q = linalg.lu_solve(lu_p, e_q, trans=1)
-        y_q = D.T.dot(e_q)
+        y_q = D.T.dot(u_q)
         y_neg = [i for i in range(len(y_q)) if is_neg(y_q[i])]
         if len(y_neg) == 0:
             sys.stderr.write("Problem unbounded\n\n")
