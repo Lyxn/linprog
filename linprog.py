@@ -2,6 +2,7 @@
 import sys
 import numpy as np
 from scipy import linalg
+
 from simplex import simplex_revised
 
 
@@ -86,17 +87,19 @@ def init_basis_primal(A, b, **argv):
     row, col = A.shape
     vec_one = np.ones(row)
     Ap = np.concatenate((A, np.eye(row)), axis=1)
-    cp = np.concatenate((-vec_one.dot(A), np.zeros(row)))
+    #cp = np.concatenate((-vec_one.dot(A), np.zeros(row)))
+    cp = np.concatenate((np.zeros(col), np.ones(row)))
     basis = range(col, col + row)
     ret = simplex_revised(cp, Ap, b, basis)
     if type(ret) == int:
         sys.stderr.write("Problem invalid\n")
         return -1
-    basis, x0, _ = ret
-    if not all(is_zero(i) for i in x0[col:]):
-        sys.stderr.write("Problem infeasilble\n")
+    #basis, x0, _ = ret
+    #if not all(is_zero(i) for i in x0[col:]):
+    if not is_zero(ret.z_opt):
+        sys.stderr.write("Problem infeasible\n")
         return -2
-    return basis, x0
+    return ret
 
 
 def check_basis_slack(basis, A, **argv):
@@ -163,24 +166,23 @@ def linprog_primal(c, A, b, **argv):
     if type(ret0) == int:
         sys.stderr.write("Problem infeasible\n")
         return -3
-    basis, x0 = ret0
+    basis = ret0.basis
+    x0 = ret0.x_basis
     if debug:
         print "\nBasic Problem solved"
         print "basis\t%s" % str(basis)
         print "x0\t%s" % str(x0)
     check_basis_slack(basis, A)
     # Solve LP
-    ret1 = simplex_revised(c, A, b, basis, debug=debug)
-    if type(ret1) == int:
+    opt = simplex_revised(c, A, b, basis, debug=debug)
+    if type(opt) == int:
         sys.stderr.write("Problem unsolved\n")
-        return ret1
-    basis, x_opt, lmbd_opt = ret1
+        return opt
     if debug:
         print "\nPrimal Problem solved"
-        print "z_opt\t%s" % np.dot(x_opt, c)
-        print "x_opt\t%s" % str(x_opt)
-        print "lambda_opt\t%s" % str(lmbd_opt)
-    return basis, x_opt, lmbd_opt
+        print "z_opt\t%s" % opt.z_opt
+        print "x_opt\t%s" % str(opt.x_opt)
+    return opt
 
 
 def linprog(c, **argv):

@@ -23,9 +23,9 @@ def test_revised():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print "\nTest Revised Simplex"
-    simplex_revised(c, A, b, basis, debug=True)
+    print simplex_revised(c, A, b, basis, debug=True)
     print "\nTest Two Phrase Method"
-    linprog_primal(c, A, b, debug=True)
+    print linprog_primal(c, A, b, debug=True)
 
 
 def test_dual0():
@@ -60,14 +60,11 @@ def test_dwp0_revised():
     c = [-4, -1, -3, -2]
     b = [6, 4, 5, 1, 2, 6]
     A = [[2, 2, 1, 2], [0, 1, 2, 3], [2, 1, 0, 0], [0, 1, 0, 0], [0, 0, -1, 2], [0, 0, 1, 2]]
-    basis = [4, 5, 6, 7, 8, 9]
+    c = np.array(c)
+    A = np.array(A)
     b = np.array(b)
-    basis = np.array(basis)
-    num_slack = 6
-    c = np.concatenate((c, np.zeros(num_slack)))
-    A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print "\nTest Dantzig Wolfe 0"
-    print linprog_primal(c, A, b, debug=True)
+    print linprog(c, A_ub=A, b_ub=b, debug=True)
 
 
 def test_dwp0_dantzig():

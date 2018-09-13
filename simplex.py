@@ -3,6 +3,7 @@
 import sys
 import numpy as np
 from scipy import linalg
+from base import Optimum
 
 def align_basis(x_b, basis, dim):
     x0 = np.zeros(dim)
@@ -37,11 +38,13 @@ def simplex_revised(c, A, b, basis, **argv):
         fail:
         -1: illegal
         -2: unbounded
+        -3: unsolved
     """
-    # init 
+    # argument
     eps = argv.get("eps", 1e-16)
     max_iter = argv.get("max_iter", 100)
     debug = argv.get("debug", False)
+    ret_lu = argv.get("ret_lu", False)
     is_neg = lambda x: x < -eps
     is_pos = lambda x: x > eps
     is_zero = lambda x: x <= eps and x >= -eps
@@ -68,19 +71,24 @@ def simplex_revised(c, A, b, basis, **argv):
         x_b = linalg.lu_solve(lu_p, b)
         lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
         r_d = c_d - D.T.dot(lmbd)
+        z0 = np.dot(x_b, c_b)
         if debug:
             print "\nIteration %d" % itr
+            print "z\t%s" % z0
             print "basis\t%s" % str(basis)
             print "x_b\t%s" % str(x_b)
             print "lambda\t%s" % str(lmbd)
-            print "z\t%s" % np.dot(x_b, c_b)
-            print "nonbasis\t%s" % str(nonbasis)
             print "r_d\t%s" % str(r_d)
         # check reduced cost
         neg_ind = [i for i in range(len(r_d)) if is_neg(r_d[i])]
         if len(neg_ind) == 0:
             sys.stderr.write("Problem solved\n")
-            return basis, align_basis(x_b, basis, col), lmbd
+            x_opt = align_basis(x_b, basis, col)
+            if ret_lu:
+                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, lu_basis=lu_p)
+            else:
+                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b)
+            return opt
         ind_new = nonbasis[neg_ind[0]]
         # pivot
         a_q = A.take(ind_new, axis=1)
@@ -97,7 +105,8 @@ def simplex_revised(c, A, b, basis, **argv):
         if debug:
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
-    return basis, align_basis(x_b, basis, col), lmbd
+    sys.stderr.write("Problem unsolved\n")
+    return -3
 
 
 def simplex_dual(c, A, b, basis, **argv):
@@ -118,11 +127,13 @@ def simplex_dual(c, A, b, basis, **argv):
         fail:
         -1: illegal
         -2: unbounded
+        -3: unsolved
     """
     # init 
     eps = argv.get("eps", 1e-16)
     max_iter = argv.get("max_iter", 100)
     debug = argv.get("debug", False)
+    ret_lu = argv.get("ret_lu", False)
     is_neg = lambda x: x < -eps
     is_pos = lambda x: x > eps
     is_zero = lambda x: x <= eps and x >= -eps
@@ -133,10 +144,6 @@ def simplex_dual(c, A, b, basis, **argv):
         info = "Size illegal c:%s A:%s,%s b:%s, basis:%s\n" % (len(c), row, col, len(b), len(basis))
         sys.stderr.write(info)
         return -1
-    # check dual feasible
-    #if any(is_neg(i) for i in c):
-    #    sys.stderr.write("Basis illegal c:%s\n" % str(c))
-    #    return -1
 
     # iteration
     for itr in range(max_iter):
@@ -150,22 +157,28 @@ def simplex_dual(c, A, b, basis, **argv):
         x_b = linalg.lu_solve(lu_p, b)
         lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
         r_d = c_d - D.T.dot(lmbd)
+        z0 = np.dot(x_b, c_b)
+        # check dual feasible
         if any(is_neg(i) for i in r_d):
             sys.stderr.write("Dual infeasible r_d:%s\n" % str(r_d))
             return -1
         if debug:
             print "\nIteration %d" % itr
+            print "z\t%s" % z0
             print "basis\t%s" % str(basis)
             print "x_b\t%s" % str(x_b)
             print "lambda\t%s" % str(lmbd)
-            print "z\t%s" % np.dot(x_b, c_b)
-            print "nonbasis\t%s" % str(nonbasis)
             print "r_d\t%s" % str(r_d)
         # check x_b
         neg_ind = [i for i in range(len(x_b)) if is_neg(x_b[i])]
         if len(neg_ind) == 0:
             sys.stderr.write("Problem solved\n")
-            return basis, align_basis(x_b, basis, col), lmbd
+            x_opt = align_basis(x_b, basis, col)
+            if ret_lu:
+                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, lu_basis=lu_p)
+            else:
+                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b)
+            return opt
         ind_neg = neg_ind[0]
         ind_out = basis[ind_neg]
         # pivot
@@ -184,5 +197,6 @@ def simplex_dual(c, A, b, basis, **argv):
         if debug:
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
-    return basis, align_basis(x_b, basis, col), lmbd
+    sys.stderr.write("Problem unsolved\n")
+    return -3
 

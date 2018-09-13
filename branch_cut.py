@@ -3,9 +3,12 @@ import sys
 from collections import defaultdict
 import numpy as np
 from scipy import linalg
+
+from base import Optimum
 from utils import get_unit_vector 
 from utils import is_integer
 from utils import floor_residue
+from linprog import form_standard
 from simplex import simplex_dual
 
 class Node(object):
@@ -83,15 +86,15 @@ class Node(object):
             print "c_tot\t%s" % str(c_tot)
             print "b_tot\t%s" % str(b_tot)
             print "A_tot\n%s" % str(A_tot)
-        ret = simplex_dual(c_tot, A_tot, b_tot, basis_tot)
-        if type(ret) == int:
+        opt = simplex_dual(c_tot, A_tot, b_tot, basis_tot)
+        if type(opt) == int:
             sys.stderr.write("Problem unsolvable\n")
             return -2
         self.is_solved = True
-        self.basis = ret[0]
-        self.x_opt = ret[1]
-        self.lmbd_opt = ret[2]
-        self.z_opt = np.dot(self.x_opt[:num_var], c_raw)
+        self.basis = opt.basis
+        self.x_opt = opt.x_opt
+        self.lmbd_opt = opt.lmbd_opt
+        self.z_opt = opt.z_opt
         self.basis_raw = self.basis[:num_raw]
         return 0
 
@@ -120,6 +123,7 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
     ## argv
     max_iter = argv.get("max_iter", 10)
     debug = argv.get("debug", False)
+    deep_first = argv.get("deep", True)
     num_var = len(c)
     if int_idx is None:
         int_idx = range(num_var)
@@ -150,12 +154,15 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
         if debug:
             print "Node"
             print "status\t%s" % node.status
-            print "x\t%s" % node.x_opt
             print "z\t%s" % node.z_opt
+            print "x\t%s" % node.x_opt
             print "basis pro\t%s" % node.basis_raw
         ## Pruning
         if node.status < 0:
             sys.stderr.write("SubProblem unsolvable\n")
+            continue
+        if node.z_opt >= opt_val:
+            sys.stderr.write("SubProblem optimum %s over the best solution %s\n" % (node.z_opt, opt_val))
             continue
         if node.is_int:
             sys.stderr.write("SubProblem %s has integer solution %s, optimum %s\n" % (nid, node.x_opt, node.z_opt))
@@ -188,8 +195,13 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
         node_lb = Node(nid_lb, pid=nid, basis_raw=node.basis_raw, lower=lower, upper=node.upper)
         tree_dict[nid_lb] = node_lb
         ### push stack
-        node_stack.append(nid_lb)
-        node_stack.append(nid_ub)
+        if not deep_first:
+            node_stack.append(nid_ub)
+            node_stack.append(nid_lb)
+        else:
+            node_stack.append(nid_lb)
+            node_stack.append(nid_ub)
+
         if debug:
             print "Branch"
             print "var\t%s" % var_idx
@@ -201,12 +213,14 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
 def get_gomory_cut(A, x_basis, basis, cut_idx, **argv):
     # argv
     lu_basis = argv.get("lu_basis")
-    if lu_basis is None:
-        lu_basis = linalg.lu_factor(B)
+    # init
     row, col = A.shape
     nonbasis = [i for i in range(col) if i not in basis]
     B = A.take(basis, axis=1) 
     D = A.take(nonbasis, axis=1) 
+    if lu_basis is None:
+        lu_basis = linalg.lu_factor(B)
+    # calc y_cut
     e_c = get_unit_vector(row, cut_idx)
     u_c = linalg.lu_solve(lu_basis, e_c, trans=1)
     y_c = D.T.dot(u_c)
@@ -222,6 +236,8 @@ def proc_gomory_cut(c, A, b, basis, **argv):
     max_iter = argv.get("max_iter", 10)
     debug = argv.get("debug", False)
     int_idx = argv.get("int_idx", None)
+    lu_basis = argv.get("lu_basis")
+    x_basis = argv.get("x_basis")
     # init
     row_raw = len(b)
     col_raw = len(c)
@@ -234,9 +250,11 @@ def proc_gomory_cut(c, A, b, basis, **argv):
     for itr in range(max_iter):
         row, col = A_tot.shape
         nonbasis = [i for i in range(col) if i not in basis]
-        B = A_tot.take(basis, axis=1)
-        lu_basis = linalg.lu_factor(B)
-        x_basis = linalg.lu_solve(lu_basis, b_tot)
+        if lu_basis is None:
+            B = A_tot.take(basis, axis=1)
+            lu_basis = linalg.lu_factor(B)
+        if x_basis is None:
+            x_basis = linalg.lu_solve(lu_basis, b_tot)
         cut_idx = None
         cut_val = None
         for i in range(row):
@@ -247,11 +265,11 @@ def proc_gomory_cut(c, A, b, basis, **argv):
                 cut_val = val
         if cut_idx is None:
             sys.stderr.write("Problem solved\n")
-            return basis, x_opt, lmbd_opt, cut_pool
+            return opt, cut_pool
         ## calc cut
         if debug:
             print "\nIteration %s" % itr
-            print "Size\t%s %s" % (row, col)
+            print "size\t%s %s" % (row, col)
             print "basis\t%s" % str(basis)
             print "x_basis\t%s" % x_basis
             print "cut_idx\t%s" % x_basis
@@ -271,17 +289,15 @@ def proc_gomory_cut(c, A, b, basis, **argv):
             print "basis\t%s" % str(basis)
             print "c_tot\t%s" % str(c_tot)
             print "b_tot\t%s" % str(b_tot)
-        ret = simplex_dual(c_tot, A_tot, b_tot, basis)
-        if type(ret) == int:
+        opt = simplex_dual(c_tot, A_tot, b_tot, basis, ret_lu=True)
+        if type(opt) == int:
             sys.stderr.write("Problem unsolvable\n")
             return -1
-        basis = ret[0]
-        x_opt = ret[1]
-        lmbd_opt = ret[2]
+        basis = opt.basis
+        x_basis = opt.x_basis
+        lu_basis = opt.lu_basis
         if debug:
-            print "z_opt\t%s" % np.dot(x_opt, c_tot)
-            print "x_opt\t%s" % str(x_opt)
-            print "lambda\t%s" % str(lmbd_opt)
+            print opt
     
-    return basis, x_opt, lmbd_opt, cut_pool
+    return opt, cut_pool
 

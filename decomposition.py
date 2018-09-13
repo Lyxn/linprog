@@ -4,6 +4,7 @@ import sys
 import numpy as np
 from scipy import linalg
 
+from base import Optimum
 from simplex import simplex_revised
 from simplex import align_basis
 
@@ -87,7 +88,8 @@ class SubSystem(object):
         if type(ret) == int:
             return max_upper
         else:
-            basis, x_b, r = ret
+            basis = ret.basis
+            x_b = ret.x_opt
             self.basis = basis
             self.x_b = x_b
             z_opt = np.dot(c_sub, x_b) - lmbd_i
@@ -213,12 +215,12 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
         lmbd_master = linalg.lu_solve(lu_p, p_master, trans=1)
         if debug:
             print "\nIteration %d" % itr
+            print "Master z\t%s" %  np.dot(x_master, p_master)
             print "Master basis\t%s" % str(basis_master)
             print "Master B\n%s" % str(Bt_master.T)
             print "Master x\t%s" % str(x_master)
             print "Master p\t%s" % str(p_master)
             print "Master lambda\t%s" % str(lmbd_master)
-            print "Master z_opt\t%s" %  np.dot(x_master, p_master)
             #x_prime = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
             #print "Prime x\t%s" % str(x_prime)
         ## solve sub system
@@ -235,7 +237,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
             sys.stderr.write("Problem solved\n")
             x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
             z_opt = x_opt.dot(c_tot)
-            return z_opt, x_opt, lmbd_master
+            return Optimum(z_opt=z_opt, x_opt=x_opt)
         ## update master problem
         x_new = np.copy(sub_sys[min_idx].x_b)
         q_new = L[min_idx].dot(x_new)
@@ -260,7 +262,8 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
         Bt_master[out] = q_new
         extreme[min_idx].append(x_new)
         p_master[out] = np.dot(c[min_idx], x_new)
+    sys.stderr.write("Iteration exceed %s\n" % max_iter)
     x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
     z_opt = x_opt.dot(c_tot)
-    return z_opt, x_opt, lmbd_master
+    return Optimum(z_opt=z_opt, x_opt=x_opt)
 
