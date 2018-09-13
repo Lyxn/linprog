@@ -20,6 +20,8 @@ def check_size(c, A, b, basis):
         return True
 
 
+## TODO 
+## 1. algorithm will fail when the basis is singular
 def simplex_revised(c, A, b, basis, **argv):
     """
     Revised simplex for Linear Programming
@@ -70,7 +72,7 @@ def simplex_revised(c, A, b, basis, **argv):
         lu_p = linalg.lu_factor(B)
         x_b = linalg.lu_solve(lu_p, b)
         lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
-        r_d = c_d - D.T.dot(lmbd)
+        r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         if debug:
             print "\nIteration %d" % itr
@@ -105,7 +107,7 @@ def simplex_revised(c, A, b, basis, **argv):
         if debug:
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
-    sys.stderr.write("Problem unsolved\n")
+    sys.stderr.write("Iteration exceed %s\n" % max_iter)
     return -3
 
 
@@ -156,7 +158,7 @@ def simplex_dual(c, A, b, basis, **argv):
         lu_p = linalg.lu_factor(B)
         x_b = linalg.lu_solve(lu_p, b)
         lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
-        r_d = c_d - D.T.dot(lmbd)
+        r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         # check dual feasible
         if any(is_neg(i) for i in r_d):
@@ -197,6 +199,6 @@ def simplex_dual(c, A, b, basis, **argv):
         if debug:
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
-    sys.stderr.write("Problem unsolved\n")
+    sys.stderr.write("Iteration exceed %s\n" % max_iter)
     return -3
 
