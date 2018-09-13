@@ -67,7 +67,7 @@ def form_standard(c, A_eq=None, b_eq=None, A_ub=None, b_ub=None, lower={}, upper
 
 def init_basis_primal(A, b, **argv):
     """
-    Solve Artifical Linear Programming
+    Solve Artificial Linear Programming
         min 1*s 
         s.t s + A*x = b,
             s, x >= 0
@@ -85,17 +85,15 @@ def init_basis_primal(A, b, **argv):
     eps = argv.get("eps", 1e-16)
     is_zero = lambda x: x <= eps and x >= -eps
     row, col = A.shape
-    vec_one = np.ones(row)
-    Ap = np.concatenate((A, np.eye(row)), axis=1)
+    #vec_one = np.ones(row)
     #cp = np.concatenate((-vec_one.dot(A), np.zeros(row)))
     cp = np.concatenate((np.zeros(col), np.ones(row)))
+    Ap = np.concatenate((A, np.eye(row)), axis=1)
     basis = range(col, col + row)
     ret = simplex_revised(cp, Ap, b, basis)
     if type(ret) == int:
         sys.stderr.write("Problem invalid\n")
         return -1
-    #basis, x0, _ = ret
-    #if not all(is_zero(i) for i in x0[col:]):
     if not is_zero(ret.z_opt):
         sys.stderr.write("Problem infeasible\n")
         return -2
