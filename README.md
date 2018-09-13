@@ -15,12 +15,12 @@ s.t. r * A <= c
 In the integer programming, the variables must be integers.
 
 #### Artificial Variable
-One can use artificial variables to convert inequaltiy to equality.
+One can add artificial variables to convert inequaltiy to equality.
 
-e.g. `A * x <= b` iff `A * x + s = b, s>=0`.
+e.g. `A * x <= b` iff `A * x + s = b, s >= 0`.
 
 #### Basic Solution
-Let `A = [B D]` where `B` is not singular, if `xb = b / B` and `xb >= 0`, then the basic solution `xb` is feasible.
+Let `A = [B D]` where `B` is a basis for column space, if `xb = b / B` and `xb >= 0`, then the basic solution `xb` is feasible.
 
 Let `r = cb \ B`, where `c = [cb cd]`, if `rb * D <= cd` then `xb` is dual feasible.
 
@@ -42,6 +42,10 @@ if the minimum value is zero, then the problem is feasible.
 1. revised simplex 
 1. dual simplex 
 
+#### branch_cut.py
+1. branch and bound
+1. Gomory cut
+
 #### decomposition.py
 1. Dantzig Wolfe Decomposition
 
@@ -50,11 +54,12 @@ if the minimum value is zero, then the problem is feasible.
 
 
 ### Dependency
-Numpy, Scipy.
+numpy, scipy.
 
 
 ### Reference
 1. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming".
+1. 刘红英, 夏勇等. "数学规划基础".
 
 
 ### Further
