@@ -237,7 +237,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
             sys.stderr.write("Problem solved\n")
             x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
             z_opt = x_opt.dot(c_tot)
-            return Optimum(z_opt=z_opt, x_opt=x_opt)
+            return Optimum(z_opt=z_opt, x_opt=x_opt, num_iter=itr)
         ## update master problem
         x_new = np.copy(sub_sys[min_idx].x_b)
         q_new = L[min_idx].dot(x_new)
@@ -265,5 +265,5 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
     x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
     z_opt = x_opt.dot(c_tot)
-    return Optimum(z_opt=z_opt, x_opt=x_opt)
+    return Optimum(z_opt=z_opt, x_opt=x_opt, num_iter=itr)
 
