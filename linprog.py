@@ -4,7 +4,7 @@ import numpy as np
 from scipy import linalg
 
 from simplex import simplex_revised
-
+from utils import *
 
 def form_standard(c, A_eq=None, b_eq=None, A_ub=None, b_ub=None, lower={}, upper={}, **argv):
     """
@@ -65,6 +65,51 @@ def form_standard(c, A_eq=None, b_eq=None, A_ub=None, b_ub=None, lower={}, upper
     return c_tot, A_tot, b_tot
 
 
+def find_null_variable(basis, A, x_basis, **argv):
+    """ Find null variable to reduce equality.
+    Returns:
+        null_row: row of zero value
+        null_val: index of null variable
+    """
+    lu_basis = argv.get("lu_basis")
+    row, col = A.shape
+    is_slack = lambda c: c >= col
+    nonbasis = [i for i in range(col) if i not in basis]
+    D = A.take(nonbasis, axis=1)
+    null_row = []
+    null_var = []
+    for rid in range(len(x_basis)):
+        if not is_zero(x_basis[rid]):
+            continue
+        var = basis[rid]
+        inv_basis_row = linalg.lu_solve(lu_basis, get_unit_vector(row, rid), trans=1)
+        y_row = inv_basis_row.dot(D)
+        idx_nonzero = [i for i in range(len(y_row)) if not is_zero(y_row[i])]
+        y_nonzero = y_row[idx_nonzero]
+        var_nonzero = take_index(nonbasis, idx_nonzero)
+        if is_slack(var) and (is_pos_all(y_nonzero) or is_neg_all(y_nonzero)):
+            null_row.append(rid)
+            null_var.append(var_nonzero)
+        elif not is_slack(var) and is_pos_all(y_nonzero):
+            var_nonzero.append(var)
+            null_row.append(rid)
+            null_var.append(var_nonzero)
+    return null_row, null_var
+
+
+def reduce_equation(null_row, null_var, c, A, b, basis):
+    row, col = A.shape
+    null_col = reduce(lambda x,y: x+y, null_var)
+    row_res = [i for i in range(row) if i not in null_row]
+    col_res = [i for i in range(col) if i not in null_col]
+    c_res = c[col_res]
+    b_res = b[row_res]
+    A_res = A.take(row_res, axis=0)
+    A_res = A_res.take(col_res, axis=1)
+    basis_res = take_index(basis, row_res)
+    return c_res, A_res, b_res, basis_res
+    
+
 def init_basis_primal(A, b, **argv):
     """
     Solve Artificial Linear Programming
@@ -82,19 +127,16 @@ def init_basis_primal(A, b, **argv):
         -1: invalid
         -2: infeasible, the minimum is not zero
     """
-    eps = argv.get("eps", 1e-16)
-    is_zero = lambda x: x <= eps and x >= -eps
+    eps = argv.get("eps", 1e-10)
     row, col = A.shape
-    #vec_one = np.ones(row)
-    #cp = np.concatenate((-vec_one.dot(A), np.zeros(row)))
     cp = np.concatenate((np.zeros(col), np.ones(row)))
     Ap = np.concatenate((A, np.eye(row)), axis=1)
     basis = range(col, col + row)
-    ret = simplex_revised(cp, Ap, b, basis)
+    ret = simplex_revised(cp, Ap, b, basis, ret_lu=True)
     if type(ret) == int:
         sys.stderr.write("Problem invalid\n")
         return -1
-    if not is_zero(ret.z_opt):
+    if not is_zero(ret.z_opt, eps):
         sys.stderr.write("Problem infeasible\n")
         return -2
     return ret
@@ -170,6 +212,10 @@ def linprog_primal(c, A, b, **argv):
         print "\nBasic Problem solved"
         print "basis\t%s" % str(basis)
         print "x0\t%s" % str(x0)
+    null_row, null_var = find_null_variable(basis, A, x0, lu_basis=ret0.lu_basis)
+    if len(null_row) != 0:
+        sys.stderr.write("Reduce enable null_row %s null_var %s\n" % (str(null_row), str(null_var)))
+        c, A, b, basis = reduce_equation(null_row, null_var, c, A, b, basis)
     check_basis_slack(basis, A)
     # Solve LP
     opt = simplex_revised(c, A, b, basis, debug=debug)

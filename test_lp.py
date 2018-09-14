@@ -6,6 +6,8 @@ from simplex import simplex_dual
 from decomposition import simplex_dantzig_wolfe
 from linprog import linprog
 from linprog import linprog_primal
+from linprog import find_null_variable
+from linprog import reduce_equation
 
 
 def test_revised():
@@ -109,6 +111,30 @@ def test_dwp1_dantzig():
     print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True)
 
 
+def test_reduce_equation():
+    print "\nTest reduce equation"
+    c = [4, 3, 2, 1]
+    A = [[2, 3, 4, 4], [1, 1, 2, 1]]
+    b = [6, 3]
+    c = np.array(c)
+    A = np.array(A)
+    b = np.array(b)
+    print "Primal Problem"
+    print linprog(c, A_eq=A, b_eq=b)
+    row, col = A.shape
+    c_s = np.concatenate((np.zeros(col), np.ones(row)))
+    A_s = np.concatenate((A, np.eye(row)), axis=1)
+    basis = range(col, col + row)
+    opt = simplex_revised(c_s, A_s, b, basis, ret_lu=True)
+    null_row, null_var = find_null_variable(opt.basis, A, opt.x_basis, lu_basis=opt.lu_basis)
+    c_res, A_res, b_res, basis_res = reduce_equation(null_row, null_var, c, A, b, basis)
+    print "\nReduce Problem"
+    print "A\n%s\n%s" % (str(A), str(A_res))
+    print "b\n%s\n%s" % (str(b), str(b_res))
+    print "c\n%s\n%s" % (str(c), str(c_res))
+    print simplex_revised(c_res, A_res, b_res, basis_res)
+
+
 if __name__ == "__main__":
     test_revised()
     test_dual0()
@@ -116,4 +142,5 @@ if __name__ == "__main__":
     test_dwp0_revised()
     test_dwp0_dantzig()
     test_dwp1_dantzig()
+    test_reduce_equation()
 

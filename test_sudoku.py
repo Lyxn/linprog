@@ -61,7 +61,7 @@ def test_sudoku_p0():
     basis = range(col, col+row)
     cur = time.time()
     opt = simplex_revised(c, A, b, basis, eps=1e-10, max_iter=1000)
-    print "\nSimplex_lu time cost %5s" % (time.time() - cur)
+    print "\nSimplexLU time cost %5s" % (time.time() - cur)
     mat = sd2.vec2mat(opt.x_opt)
     print opt
     print "Sudoku Matrix\n%s" % str(mat)
@@ -123,7 +123,7 @@ def test_sudoku_p1():
     basis = range(col, col+row)
     cur = time.time()
     opt = simplex_revised(c_s, A_s, b, basis, eps=1e-10, max_iter=10000, ret_lu=True)
-    print "\nSimplex_lu time cost %5s" % (time.time() - cur)
+    print "\nSimplexLU time cost %5s" % (time.time() - cur)
     print opt
     if opt.x_opt is not None:
         mat = sdk.vec2mat(opt.x_opt[:col])
