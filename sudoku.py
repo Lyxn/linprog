@@ -3,6 +3,15 @@ import sys
 import numpy as np
 from scipy import sparse
  
+def idx2mat(idx, val, dim):
+    if len(idx) == 0:
+        return np.zeros((dim, dim))
+    mat = np.zeros(dim ** 2)
+    idx = np.array(idx) - 1
+    mat[idx] = val
+    return mat.reshape(dim, dim)
+
+    
 class Sudoku(object):
     """ Sudoku Problem
     """
@@ -17,17 +26,18 @@ class Sudoku(object):
         return offset + (val - 1)
 
     def bool2idx(self, num):
-        idx = num / self.num_dim + 1
-        val = num % self.num_dim + 1
+        idx = int(num / self.num_dim + 1)
+        val = int(num % self.num_dim + 1)
         return idx, val
 
     def mat2bool(self, row, col, val=1):
         """ Row first
         """
-        if row > self.num_dim or col > self.num_dim:
+        dim = self.num_dim
+        if row > dim or col > dim:
             sys.stderr.write("Size %s %s exceed\n" % (row, col))
             return -1
-        idx = (row - 1) * num + col   
+        idx = (row - 1) * dim + col   
         return self.idx2bool(idx, val)
 
     def vec2idx(self, vec):
@@ -47,6 +57,13 @@ class Sudoku(object):
         vec = sparse.lil_matrix((self.num_bool, 1))
         vec[idx] = 1
         return vec
+    
+    def idx2mat(self, idx_list, val_list):
+        return idx2mat(idx_list, val_list, self.num_dim)
+
+    def vec2mat(self, vec):
+        idx, val = self.vec2idx(vec)
+        return self.idx2mat(idx, val)
 
     def constraint_idx(self, idxs, vals):
         return [[self.idx2bool(idxs[i], vals[i])] for i in range(len(vals))]
@@ -144,7 +161,7 @@ class Sudoku(object):
             rows = pre_set[0]
             cols = pre_set[1]
             vals = pre_set[2]
-            val_cnt = self.constraint_idx(rows, cols, vals)
+            val_cnt = self.constraint_mat(rows, cols, vals)
             sdk_cnt += val_cnt
         return sdk_cnt
 

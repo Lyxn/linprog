@@ -1,5 +1,15 @@
 # encode=utf8
+"""
+## Tips
+1. Algorithm will fail when the basis is singular. 
+   One could increase `eps` to avoid the bad column with nearly zero cost. 
 
+## TODO 
+* Reduction equality, find null variable
+* Redunction inequality, find nonextremal variable
+* Caculate the inverse of basis instead 
+* One column update for LU decompostion
+"""
 import sys
 import numpy as np
 from scipy import linalg
@@ -20,8 +30,6 @@ def check_size(c, A, b, basis):
         return True
 
 
-## TODO 
-## 1. algorithm will fail when the basis is singular
 def simplex_revised(c, A, b, basis, **argv):
     """
     Revised simplex for Linear Programming
@@ -86,10 +94,9 @@ def simplex_revised(c, A, b, basis, **argv):
         if len(neg_ind) == 0:
             sys.stderr.write("Problem solved\n")
             x_opt = align_basis(x_b, basis, col)
+            opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, lu_basis=lu_p)
-            else:
-                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b)
+                opt.lu_basis = lu_p
             return opt
         ind_new = nonbasis[neg_ind[0]]
         # pivot
@@ -108,6 +115,7 @@ def simplex_revised(c, A, b, basis, **argv):
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
+    sys.stderr.write("Current optimunm %s\n" % z0)
     return -3
 
 
@@ -176,10 +184,9 @@ def simplex_dual(c, A, b, basis, **argv):
         if len(neg_ind) == 0:
             sys.stderr.write("Problem solved\n")
             x_opt = align_basis(x_b, basis, col)
+            opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, lu_basis=lu_p)
-            else:
-                opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b)
+                opt.lu_basis = lu_p
             return opt
         ind_neg = neg_ind[0]
         ind_out = basis[ind_neg]
@@ -200,5 +207,6 @@ def simplex_dual(c, A, b, basis, **argv):
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
+    sys.stderr.write("Current optimunm %s\n" % z0)
     return -3
 

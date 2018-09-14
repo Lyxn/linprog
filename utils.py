@@ -24,5 +24,9 @@ def is_integer(x, eps=1e-16):
     return is_zero(x - round(x))
 
 
+def is_integer_list(arr, eps=1e-10):
+    return all(is_integer(i, eps) for i in arr)
+
+
 def floor_residue(x):
     return x - np.floor(x)

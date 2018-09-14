@@ -107,8 +107,8 @@ class Node(object):
                 return False
         return True
        
-    def process(self, c_raw, A_raw, b_raw, int_idx):
-        self.status = self.solve(c_raw, A_raw, b_raw)
+    def process(self, c_raw, A_raw, b_raw, int_idx, **argv):
+        self.status = self.solve(c_raw, A_raw, b_raw, **argv)
         if self.is_solved:
             self.is_int = self.is_integer_solution(self.basis, self.x_opt, int_idx)
 
@@ -121,7 +121,8 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
         -1: illegal
     """
     ## argv
-    max_iter = argv.get("max_iter", 10)
+    max_iter = argv.get("max_iter", 100)
+    max_iter_sub = argv.get("max_iter", 10000)
     debug = argv.get("debug", False)
     deep_first = argv.get("deep", True)
     num_var = len(c)
@@ -150,7 +151,7 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
             print "\nIteration %s" % itr
             print "nid\t%s" % nid 
             print "basis pre\t%s" % node.basis_raw
-        ret = node.process(c, A_eq, b_eq, int_idx=int_idx)
+        ret = node.process(c, A_eq, b_eq, int_idx=int_idx, max_iter=max_iter_sub)
         if debug:
             print "Node"
             print "status\t%s" % node.status
@@ -233,7 +234,8 @@ def get_gomory_cut(A, x_basis, basis, cut_idx, **argv):
 
 def proc_gomory_cut(c, A, b, basis, **argv):
     # argv 
-    max_iter = argv.get("max_iter", 10)
+    max_iter = argv.get("max_iter", 100)
+    max_iter_sub = argv.get("max_iter_sub", 10000)
     debug = argv.get("debug", False)
     int_idx = argv.get("int_idx", None)
     lu_basis = argv.get("lu_basis")
@@ -289,7 +291,7 @@ def proc_gomory_cut(c, A, b, basis, **argv):
             print "basis\t%s" % str(basis)
             print "c_tot\t%s" % str(c_tot)
             print "b_tot\t%s" % str(b_tot)
-        opt = simplex_dual(c_tot, A_tot, b_tot, basis, ret_lu=True)
+        opt = simplex_dual(c_tot, A_tot, b_tot, basis, ret_lu=True, max_iter=max_iter_sub)
         if type(opt) == int:
             sys.stderr.write("Problem unsolvable\n")
             return -1
