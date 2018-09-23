@@ -9,7 +9,7 @@ from utils import *
 def conv_piv(vec):
     num = len(vec)
     raw = range(num)
-    for i in range(num-1):
+    for i in range(num):
         trn = raw[vec[i]]
         raw[vec[i]] = raw[i]
         raw[i] = trn
@@ -30,12 +30,13 @@ def swap_row(mat, k, j):
     mat[j] = tmp
 
 
-def calc_lu_lower(lu, out, piv_ind, trn_val):
+def calc_lu_lower(lu, out, trn_val):
+    """ no pivot
+    """
     size = lu.shape[0]
     Lt = np.tril(lu, -1).T + np.eye(size)
     i = 0
     for k in range(out, size - 1):
-        piv = piv_ind[i]
         trn = trn_val[i]
         Lt[k][k+1:] -= Lt[k+1][k+1:] * trn
         i += 1
@@ -43,6 +44,20 @@ def calc_lu_lower(lu, out, piv_ind, trn_val):
 
 
 def lu_update_col(lu, out, col_in):
+    """ 
+    Given A = L @ U, find A_new = P @ L_new @ U_new, 
+    where A_new = [a_1,..,a_k-1, a_k+1, a_m, a_new].
+    
+    Input:
+        LU: lu matrix
+        out: index of out-column 
+        col_in: new column 
+        
+    Return:
+        H: lu matrix
+        piv_ind: pivot info
+        trn_val: transform value
+    """
     is_big_num = lambda x: x >= 1e3
     size = lu.shape[0]
     h_L = linalg.solve_triangular(lu, col_in, lower=True, unit_diagonal=True)
@@ -50,6 +65,7 @@ def lu_update_col(lu, out, col_in):
     H = np.row_stack((Ut[0:out], Ut[out+1:], h_L)).T
     piv_ind = []
     trn_val = []
+    #print "H0\n%s" % str(H)
     for k in range(out, size-1):
         if is_zero(H[k, k]) and is_zero(H[k+1, k]):
             piv_ind.append(k)
@@ -61,9 +77,11 @@ def lu_update_col(lu, out, col_in):
         else:
             piv_ind.append(k)
         trn = -H[k+1, k] / H[k, k]
-        #H[k+1][k] = 0
-        #H[k+1][k+1:] += H[k][k+1:] * trn
-        H[k+1][k:] += H[k][k:] * trn
+        #H[k+1][k:] += H[k][k:] * trn
+        ## upper info
+        H[k+1][k+1:] += H[k][k+1:] * trn
+        ## lower info
+        H[k+1, k] = trn
         trn_val.append(trn)
     return H, piv_ind, trn_val
 

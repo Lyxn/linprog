@@ -52,6 +52,15 @@ if the minimum value is zero, then the problem is feasible.
 #### dynamic.py
 1. 0-1 knapsack problem
 
+#### factorization.py
+1. LU update
+
+
+### Modeling
+
+#### sudoku.py
+1. Sudoku as 0-1 linear programming
+
 
 ### Dependency
 numpy, scipy.
