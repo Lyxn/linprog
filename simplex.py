@@ -5,7 +5,7 @@
    One could increase `eps` to avoid the bad column with nearly zero cost. 
 
 ## TODO 
-* Redunction inequality, find nonextremal variable
+* Reduction of inequality, find nonextremal variable
 * One column update for LU decompostion
 """
 import sys
