@@ -113,7 +113,7 @@ def simplex_revised(c, A, b, basis, **argv):
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
-    sys.stderr.write("Current optimunm %s\n" % z0)
+    sys.stderr.write("Current optimum %s\n" % z0)
     return -3
 
 
@@ -205,6 +205,6 @@ def simplex_dual(c, A, b, basis, **argv):
             print "y_q\t%s" % str(y_q)
             print "basis in %s out %s" % (ind_new, ind_out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
-    sys.stderr.write("Current optimunm %s\n" % z0)
+    sys.stderr.write("Current optimum %s\n" % z0)
     return -3
 

@@ -52,6 +52,10 @@ if the minimum value is zero, then the problem is feasible.
 #### dynamic.py
 1. 0-1 knapsack problem
 
+#### network.py
+1. tranportation problem
+1. minimum-cost network flow problem
+
 #### factorization.py
 1. LU update
 

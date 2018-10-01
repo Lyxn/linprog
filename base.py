@@ -3,6 +3,7 @@ import sys
 
 class Optimum(object):
     def __init__(self, **argv):
+        self.status = 0
         self.z_opt = argv.get("z_opt")
         self.x_opt = argv.get("x_opt")
         self.lmbd_opt = argv.get("lmbd_opt")
