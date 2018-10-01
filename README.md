@@ -53,7 +53,7 @@ if the minimum value is zero, then the problem is feasible.
 1. 0-1 knapsack problem
 
 #### network.py
-1. tranportation problem
+1. transportation problem
 1. minimum-cost network flow problem
 
 #### factorization.py
