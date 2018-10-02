@@ -52,9 +52,8 @@ if the minimum value is zero, then the problem is feasible.
 #### dynamic.py
 1. 0-1 knapsack problem
 
-#### network.py
+#### transport.py
 1. transportation problem
-1. minimum-cost network flow problem
 
 #### factorization.py
 1. LU update
@@ -80,4 +79,7 @@ numpy, scipy.
 1. cvxopt http://cvxopt.org/
 1. MIPLIB http://miplib.zib.de/
 1. MiniZinc http://www.minizinc.org/
+1. NEOS https://neos-server.org/neos/
+1. SCIP http://scip.zib.de/
+1. LEMON https://lemon.cs.elte.hu/trac/lemon
 
