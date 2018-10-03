@@ -3,7 +3,6 @@
 import sys
 from collections import defaultdict
 import numpy as np
-from scipy import sparse
 
 from base import Optimum
 from utils import *

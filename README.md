@@ -20,7 +20,8 @@ One can add artificial variables to convert inequaltiy to equality.
 e.g. `A * x <= b` iff `A * x + s = b, s >= 0`.
 
 #### Basic Solution
-Let `A = [B D]` where `B` is a basis for column space, if `xb = b / B` and `xb >= 0`, then the basic solution `xb` is feasible.
+Let `A = [B D]` where `B` is a basis for column space, if `xb = b / B` and `xb >= 0`, then the basic solution `xb` is feasible. 
+And the basic solution is actually `x = [xb 0]`.
 
 Let `r = cb \ B`, where `c = [cb cd]`, if `r * D <= cd` then `xb` is dual feasible.
 
@@ -52,6 +53,9 @@ if the minimum value is zero, then the problem is feasible.
 #### dynamic.py
 1. 0-1 knapsack problem
 
+#### network.py
+1. minimum cost flow problem (network simplex)
+
 #### transport.py
 1. transportation problem
 
@@ -70,6 +74,7 @@ numpy, scipy.
 
 
 ### Reference
+1. Bertsekas D. P. "Network Optimization: Continuous and Discrete Models".
 1. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming".
 1. 刘红英, 夏勇等. "数学规划基础".
 
