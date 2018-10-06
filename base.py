@@ -3,7 +3,7 @@ import sys
 
 class Optimum(object):
     def __init__(self, **argv):
-        # Stauts: solved 0, illegal -1, unbounded -2, max_iter -3
+        # Status: solved 0, illegal -1, unbounded -2, max_iter -3
         self.status = argv.get("status", 0)
         self.z_opt = argv.get("z_opt")
         self.x_opt = argv.get("x_opt")
