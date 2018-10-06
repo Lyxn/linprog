@@ -53,8 +53,8 @@ if the minimum value is zero, then the problem is feasible.
 #### dynamic.py
 1. 0-1 knapsack problem
 
-#### network.py
-1. minimum cost flow problem (network simplex)
+#### network_simplex.py
+1. minimum cost flow problem 
 
 #### transport.py
 1. transportation problem

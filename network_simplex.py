@@ -44,6 +44,7 @@ class TreeAPI(Network):
         self.root_id = 0
         self.basic_arc = set()
 
+    ### Block Init
     def init_tree_from_arc(self, basic_arc):
         self.basic_arc.update(basic_arc)
         # Init Spanning Tree 
@@ -58,11 +59,12 @@ class TreeAPI(Network):
         root.set_root()
         ## init tree struct
         self.init_tree_struct(root)
-        ## update depth and pred
+        ## update depth 
         self.update_depth(root)
         ## update thread
         self.update_thread(root)
-        
+        ## update thread
+        self.update_successor(root)
         # Calculate Flow & Price
         self.calc_basic_flow(self.basic_arc)
         ## update node price
@@ -116,6 +118,18 @@ class TreeAPI(Network):
             stk.append(last_node.brother)    
             stk.append(last_node.son)    
         last_node.thread = -1
+
+    def update_successor(self, node):
+        if node.son not in self.nodes:
+            succ = 0
+        else:
+            son = self.nodes[node.son]
+            succ = self.update_successor(son) + 1
+            while son.brother in self.nodes:
+                son = self.nodes[son.brother]
+                succ += self.update_successor(son) + 1
+        node.num_succ = succ
+        return succ
 
     def calc_basic_flow(self, basic_arc):
         arc_cnt = np.zeros(self.num_node)
@@ -173,7 +187,7 @@ class TreeAPI(Network):
         while len(stk) > 0:
             cur = stk.pop()
             if cur.brother in self.nodes:
-                brother = self.nodes[cur, brother]
+                brother = self.nodes[cur.brother]
                 father = self.nodes[brother.pred]
                 self.calc_node_price(father, brother)
                 stk.append(brother)
@@ -196,6 +210,20 @@ class TreeAPI(Network):
             cost_sum += arc.cost * arc.flow
         return cost_sum
 
+    def init_artificial_tree(self):
+        nid0 = self.num_node
+        self.add_node(nid0)
+        basic_arc = []
+        for nid in range(self.num_node):
+            if self.nodes[nid].supply > 0:
+                aid = self.add_artificial_arc(nid, nid0)
+            else:
+                aid = self.add_artificial_arc(nid0, nid)
+            basic_arc.append(aid)
+        self.update_num_node()
+        self.init_tree_from_arc(basic_arc)
+
+    ### Block Print
     def print_nodes(self):
         print "Node"
         for nid in self.nodes:
@@ -205,19 +233,30 @@ class TreeAPI(Network):
         print "Basic Arc"
         for aid in self.basic_arc:
             print self.arcs[aid]
-        print "NonBasis Arc"
-        for aid, arc in self.arcs.iteritems():
-            if not arc.is_state_tree():
-                print arc
+        #print "NonBasis Arc"
+        #for aid, arc in self.arcs.iteritems():
+        #    if not arc.is_state_tree():
+        #        print arc
 
     def print_tree(self):
         print "\nTree Cost %d" % self.sum_basic_cost()
         self.print_nodes()
         self.print_arcs()
 
-    def find_succesor(self, node):
+    def print_optimum(self):
+        arcs = [self.arcs[aid] for aid in self.basic_arc]
+        arcs = [x for x in arcs if x.flow > 0]
+        print "\nOptimum Cost %d" % sum(x.flow * x.cost for x in arcs)
+        for arc in arcs:
+            print arc
+
+    ### Block Simplex 
+    def find_successors(self, node):
         succesors = set()
-        queue = [node.nid]
+        succesors.add(node.nid)
+        queue = []
+        if node.son in self.nodes:
+            queue.append(node.son)
         while len(queue) > 0:
             nid = queue.pop()
             succesors.add(nid)
@@ -338,7 +377,7 @@ class TreeAPI(Network):
         else:
             son = self.nodes[node.son]
             while son.brother in self.nodes:
-                son = self.nodes[node.brother]
+                son = self.nodes[son.brother]
             son.brother = child.nid
 
     def tree_del_child(self, node, child):
@@ -354,19 +393,40 @@ class TreeAPI(Network):
             son.brother = child.brother
             child.brother = -1
 
-    def update_tree_struct(self, arc_in, node_upd, tree_upd):
+    def update_successor_cycle(self, out0, out1, in0, in1, node_join):
+        delta = out1.num_succ + 1
+        ## Cycle not at updated Tree
+        cur = out0
+        while cur != node_join:
+            cur.num_succ -= delta
+            cur = self.nodes[cur.pred]
+        cur = in0
+        while cur != node_join:
+            cur.num_succ += delta
+            cur = self.nodes[cur.pred]
+        ## Cycle at updated Tree
+        cur = out1
+        num_pre = 0
+        while cur != in1:
+            pred = self.nodes[cur.pred]
+            num_brother = cur.num_succ - (pred.num_succ + 1)
+            cur.num_succ = num_brother + num_pre 
+            num_pre = cur.num_succ + 1
+            cur = pred
+        in1.num_succ = delta - 1
+
+    def update_tree_struct(self, arc_in, out_upd, out_root, tree_upd, cycle):
         if arc_in.s in tree_upd:
-            node = self.nodes[arc_in.s]
-            pred_new = self.nodes[arc_in.d]
+            in_upd = self.nodes[arc_in.s]
+            in_root = self.nodes[arc_in.d]
         else:
-            node = self.nodes[arc_in.d]
-            pred_new = self.nodes[arc_in.s]
-        node.depth = pred_new.depth + 1
-        self.tree_add_child(pred_new, node)
-        node_top = node
-        new_pid = pred_new.nid
+            in_upd = self.nodes[arc_in.d]
+            in_root = self.nodes[arc_in.s]
         #print "update tree"
-        while node.nid != node_upd.nid:
+        self.tree_add_child(in_root, in_upd)
+        node = in_upd
+        new_pid = in_root.nid
+        while node.nid != out_upd.nid:
             pred_old = self.nodes[node.pred] 
             ## update child
             self.tree_add_child(node, pred_old)
@@ -377,11 +437,14 @@ class TreeAPI(Network):
             ## change node
             new_pid = node.nid
             node = pred_old
-        if not node.is_root:
-            self.tree_del_child(self.nodes[node.pred], node)
-            node.pred = new_pid
-        #self.print_nodes()
-        self.update_depth(node_top)
+        #if not node.is_root:
+        self.tree_del_child(self.nodes[node.pred], node)
+        node.pred = new_pid
+        ## udpate depth
+        in_upd.depth = in_root.depth + 1
+        self.update_depth(in_upd)
+        ## update succesor
+        self.update_successor_cycle(out_root, out_upd, in_root, in_upd, cycle.node_join)
 
     def simplex(self, **argv):
         max_iter = argv.get("max_iter", 1000)
@@ -398,14 +461,17 @@ class TreeAPI(Network):
                     arc_in = arc
                     break
             if not has_neg:
-                sys.stderr.write("Probelm solved.\n")
-                return self.basic_arc
+                sys.stderr.write("Problem solved.\n")
+                return 0
             # find leaving arc
             node_join = self.find_join_node(arc_in.s, arc_in.d)
             ## cycle 
             cycle = Cycle(arc_in, node_join)
             cycle = self.find_cycle(arc_in, node_join, cycle)
             arc_out, anti_arcs = self.find_leaving_arc(arc_in, cycle)
+            if arc_out is None:
+                sys.stderr.write("Problem unbounded.\n")
+                return -1
             if debug:
                 print "\nIteration %d" % itr
                 cycle.print_cycle()
@@ -414,14 +480,18 @@ class TreeAPI(Network):
             src_out = self.nodes[arc_out.s]
             dst_out = self.nodes[arc_out.d]
             if src_out.pred == dst_out.nid:
-                node_upd = src_out
+                out_upd = src_out
+                out_root = dst_out
             else:
-                node_upd = dst_out
-            tree_upd = self.find_succesor(node_upd)
+                out_upd = dst_out
+                out_root = src_out
+            tree_upd = self.find_successors(out_upd)
+            if debug:
+                print "TreeUpdate Size %d\n%s" % (len(tree_upd), out_upd)
             ## Update price
             self.update_node_price(arc_in, tree_upd)
             self.update_reduced_cost(arc_in, tree_upd)
-            self.update_tree_struct(arc_in, node_upd, tree_upd)
+            self.update_tree_struct(arc_in, out_upd, out_root, tree_upd, cycle)
             self.update_basic_arc(arc_in, arc_out)
             if debug:
                 self.print_tree()

@@ -1,4 +1,13 @@
 # encode: utf8
+"""
+# Reference
+Pardalos P. M. et al.(eds.), Network Optimization[M]. Springer Berlin Heidelberg, 1997. P265-291.
+Florian M., Lebeuf D., An Efficient Implementation of the Network Simplex Method.
+
+# Spanning Tree Representation
+API: Predecessor, Son, Brother, Depth or Number of Successors
+ATI: Predecessor, Preorder(Thread), Depth or Number of Successors
+"""
 import sys
 
 class Arc(object):
@@ -8,7 +17,7 @@ class Arc(object):
         self.d = d ## end
         self.cost = cost
         self.capacity = capacity
-        self.is_artifical = artificial
+        self.artifical = artificial
         ## flow info
         self.flow = 0
         self.reduced_cost = None
@@ -20,8 +29,8 @@ class Arc(object):
 
     def __str__(self):
         #string = "ArcId: %d (%d %d) Cost %d Flow %d" % (self.aid, self.s, self.d, self.cost, self.flow)
-        string = "ArcId: %d (%d %d) Cost %d Flow %d Dir %s Red %s" % \
-                 (self.aid, self.s, self.d, self.cost, self.flow, str(self.direction), str(self.reduced_cost))
+        string = "ArcId: %d (%d %d) Cost %d Art %d Flow %d Dir %s Red %s" % \
+                 (self.aid, self.s, self.d, self.cost, self.artifical, self.flow, str(self.direction), str(self.reduced_cost))
         return string
     
     def get_neighbor(self, nid):
@@ -64,8 +73,8 @@ class Node(object):
         return self.nid == node.nid
 
     def __str__(self):
-        string = "NodeId: %d Supply %d Price %s Pred %d Son %d Brother %d Depth %s" % \
-                (self.nid, self.supply, self.price, self.pred, self.son, self.brother, self.depth)
+        string = "NodeId: %d Supply %d Price %s Pred %d Son %d Brother %d Depth %s NumSucc %s" % \
+                (self.nid, self.supply, self.price, self.pred, self.son, self.brother, self.depth, self.num_succ)
         return string
     
     def add_arc_out(self, aid):
@@ -118,12 +127,14 @@ class Network(object):
         self.arcs[aid] = Arc(aid, s, d, cost, capacity)
         self.arc_idx[(s, d)] = aid
         self.nodes[s].add_arc_out(aid)
+        return aid
 
     def add_artificial_arc(self, s, d):
         aid = len(self.arcs)
         self.arcs[aid] = Arc(aid, s, d, self.max_cost, self.max_capacity, artificial=True)
         self.arc_idx[(s, d)] = aid
         self.nodes[s].add_arc_out(aid)
+        return aid
 
     def get_arc(self, nid_pr):
         if nid_pr in self.arc_idx:
