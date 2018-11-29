@@ -27,7 +27,7 @@ Let `r = cb \ B`, where `c = [cb cd]`, if `r * D <= cd` then `xb` is dual feasib
 
 If `xb` is both primal and dual feasible, then it is optimum.
 
-#### Two Pharse Method
+#### Two Phrase Method
 Solve the artificial problem for a basic solution
 ```
 min  1 * s
