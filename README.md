@@ -7,7 +7,7 @@ min  c * x
 s.t. A * x = b,
      x >= 0.
 ```
-The dual problem is 
+And the dual problem is 
 ```
 max r * b
 s.t. r * A <= c
@@ -34,7 +34,7 @@ min  1 * s
 s.t. A * x + s = b,
      x, s >= 0
 ```
-if the minimum value is zero, then the problem is feasible.
+If the optimum value is zero, then the problem is feasible.
 
 
 ### Algorithm 
