@@ -1,14 +1,12 @@
 # encode: utf8
-
-import sys
-import numpy as np
 from scipy import linalg
 
 from utils import *
 
+
 def conv_piv(vec):
     num = len(vec)
-    raw = range(num)
+    raw = list(range(num))
     for i in range(num):
         trn = raw[vec[i]]
         raw[vec[i]] = raw[i]
@@ -38,7 +36,7 @@ def calc_lu_lower(lu, out, trn_val):
     i = 0
     for k in range(out, size - 1):
         trn = trn_val[i]
-        Lt[k][k+1:] -= Lt[k+1][k+1:] * trn
+        Lt[k][k + 1:] -= Lt[k + 1][k + 1:] * trn
         i += 1
     return Lt.T
 
@@ -62,27 +60,25 @@ def lu_update_col(lu, out, col_in):
     size = lu.shape[0]
     h_L = linalg.solve_triangular(lu, col_in, lower=True, unit_diagonal=True)
     Ut = np.triu(lu).T
-    H = np.row_stack((Ut[0:out], Ut[out+1:], h_L)).T
+    H = np.row_stack((Ut[0:out], Ut[out + 1:], h_L)).T
     piv_ind = []
     trn_val = []
-    #print "H0\n%s" % str(H)
-    for k in range(out, size-1):
-        if is_zero(H[k, k]) and is_zero(H[k+1, k]):
+    # print("H0\n%s" % str(H))
+    for k in range(out, size - 1):
+        if is_zero(H[k, k]) and is_zero(H[k + 1, k]):
             piv_ind.append(k)
             trn_val.append(0)
             continue
-        if is_zero(H[k, k]) or is_big_num(H[k, k+1] / H[k, k]):
-            swap_row(H, k, k+1)
-            piv_ind.append(k+1)
+        if is_zero(H[k, k]) or is_big_num(H[k, k + 1] / H[k, k]):
+            swap_row(H, k, k + 1)
+            piv_ind.append(k + 1)
         else:
             piv_ind.append(k)
-        trn = -H[k+1, k] / H[k, k]
-        #H[k+1][k:] += H[k][k:] * trn
+        trn = -H[k + 1, k] / H[k, k]
+        # H[k+1][k:] += H[k][k:] * trn
         ## upper info
-        H[k+1][k+1:] += H[k][k+1:] * trn
+        H[k + 1][k + 1:] += H[k][k + 1:] * trn
         ## lower info
-        H[k+1, k] = trn
+        H[k + 1, k] = trn
         trn_val.append(trn)
     return H, piv_ind, trn_val
-
-

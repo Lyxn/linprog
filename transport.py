@@ -1,16 +1,17 @@
 # encode: utf8
+from __future__ import print_function
 
 import sys
 from collections import defaultdict
-import numpy as np
 
 from base import Optimum
 from utils import *
 
+
 def dct2mat(dct, size):
     mat = np.zeros(size)
-    for i, cols in dct.iteritems():
-        for j, val in cols.iteritems(): 
+    for i, cols in dct.items():
+        for j, val in cols.items():
             mat[i, j] = val
     return mat
 
@@ -40,13 +41,13 @@ def northwest_corner(sources, sinks):
                 cur_snk = sinks[j]
             else:
                 break
-    return basis        
+    return basis
 
 
 def transpose(basis):
     trn = defaultdict(dict)
-    for i, row in basis.iteritems():
-        for j, val in row.iteritems():
+    for i, row in basis.items():
+        for j, val in row.items():
             trn[j][i] = val
     return trn
 
@@ -57,21 +58,21 @@ def calc_dual_variable(basis, cost):
     col_val = np.zeros(n)
     row_res = set(range(m))
     col_res = set(range(n))
-    #col_res.remove(0)
+    # col_res.remove(0)
     row_res.remove(0)
     while True:
         for i in basis:
             for j in basis[i]:
                 if i in row_res and j not in col_res:
-                    row_val[i] = cost[i][j] - col_val[j] 
+                    row_val[i] = cost[i][j] - col_val[j]
                     row_res.remove(i)
                 elif i not in row_res and j in col_res:
-                    col_val[j] = cost[i][j] - row_val[i] 
+                    col_val[j] = cost[i][j] - row_val[i]
                     col_res.remove(j)
         if len(col_res) == 0 and len(row_res) == 0:
             break
     return row_val, col_val
-                
+
 
 def calc_optimum(basis, cost):
     opt = 0
@@ -113,9 +114,9 @@ def update_basis(basis, neg_idx, size, debug=False):
     ## count element of basis
     row_num, col_num = count_basis(basis, size)
     if debug:
-        print "neg_idx\t%s %s" % neg_idx
-        print "row_num\t%s" % str(row_num)
-        print "col_num\t%s" % str(col_num)
+        print("neg_idx\t%s %s" % neg_idx)
+        print("row_num\t%s" % str(row_num))
+        print("col_num\t%s" % str(col_num))
     ## cycle
     for itr in range(m + n):
         for i in basis:
@@ -140,11 +141,11 @@ def update_basis(basis, neg_idx, size, debug=False):
                     row_num[i] -= 1
                     col_num[j] -= 1
         if debug:
-            print "sgn mat\n%s" % str(dct2mat(basis_sgn, size))
-            print "sgn row\t%s" % str(row_sgn)
-            print "sgn col\t%s" % str(col_sgn)
-            print "num row\t%s" % str(row_num)
-            print "num col\t%s" % str(col_num)
+            print("sgn mat\n%s" % str(dct2mat(basis_sgn, size)))
+            print("sgn row\t%s" % str(row_sgn))
+            print("sgn col\t%s" % str(col_sgn))
+            print("num row\t%s" % str(row_num))
+            print("num col\t%s" % str(col_num))
         ## cycle complete
         if is_zero_all(col_sgn) and is_zero_all(row_sgn):
             break
@@ -180,11 +181,11 @@ def transport(sources, sinks, cost, **argv):
         ## dual variable
         dual_row, dual_col = calc_dual_variable(basis, cost)
         if debug:
-            print "\nIteration %s" % itr
-            print "optimum\t%s" % opt0
-            print "Basis\n%s" % str(dct2mat(basis, size))
-            print "dual row\t%s" % str(dual_row)
-            print "dual col\t%s" % str(dual_col)
+            print("\nIteration %s" % itr)
+            print("optimum\t%s" % opt0)
+            print("Basis\n%s" % str(dct2mat(basis, size)))
+            print("dual row\t%s" % str(dual_row))
+            print("dual col\t%s" % str(dual_col))
         ## reduced cost
         has_neg_rdc = False
         neg_idx = None
@@ -201,11 +202,10 @@ def transport(sources, sinks, cost, **argv):
             sys.stderr.write("Problem Solved\n")
             return Optimum(z_opt=opt0, basis=basis, num_iter=itr)
         if debug:
-            print "neg_idx\t%s %s" % neg_idx
+            print("neg_idx\t%s %s" % neg_idx)
         ## update basis
         update_basis(basis, neg_idx, size=size)
 
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
     sys.stderr.write("Current optimum %s\n" % opt0)
     return Optimum(status=1, z_opt=opt0, basis=basis, num_iter=max_iter)
-

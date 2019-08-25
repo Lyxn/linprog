@@ -1,8 +1,10 @@
 # encode: utf8
 import sys
+
 import numpy as np
 from scipy import sparse
- 
+
+
 def idx2mat(idx, val, dim):
     if len(idx) == 0:
         return np.zeros((dim, dim))
@@ -11,10 +13,11 @@ def idx2mat(idx, val, dim):
     mat[idx] = val
     return mat.reshape(dim, dim)
 
-    
+
 class Sudoku(object):
     """ Sudoku Problem
     """
+
     def __init__(self, n=2):
         self.num = n
         self.num_dim = n ** 2
@@ -37,7 +40,7 @@ class Sudoku(object):
         if row > dim or col > dim:
             sys.stderr.write("Size %s %s exceed\n" % (row, col))
             return -1
-        idx = (row - 1) * dim + col   
+        idx = (row - 1) * dim + col
         return self.idx2bool(idx, val)
 
     def vec2idx(self, vec):
@@ -57,7 +60,7 @@ class Sudoku(object):
         vec = sparse.lil_matrix((self.num_bool, 1))
         vec[idx] = 1
         return vec
-    
+
     def idx2mat(self, idx_list, val_list):
         return idx2mat(idx_list, val_list, self.num_dim)
 
@@ -70,15 +73,15 @@ class Sudoku(object):
 
     def constraint_mat(self, rows, cols, vals):
         return [[self.mat2bool(rows[i], cols[i], vals[i])] for i in range(len(vals))]
-        
+
     def constraint_var(self):
         var_cnt = []
         var_begin = 0
-        for i in range(1, self.num_var+1):
+        for i in range(1, self.num_var + 1):
             var_next = var_begin + self.num_dim
             var_cnt.append(range(var_begin, var_next))
             var_begin = var_next
-        return var_cnt 
+        return var_cnt
 
     def constraint_sum(self, cnt_idx):
         if len(cnt_idx) != self.num_dim:
@@ -105,8 +108,8 @@ class Sudoku(object):
     def constraint_col(self):
         col_cnt = []
         dim = self.num_dim
-        for col in range(1, dim+1):
-            cnt_idx = [col + i * dim  for i in range(dim)]
+        for col in range(1, dim + 1):
+            cnt_idx = [col + i * dim for i in range(dim)]
             cnt_sum = self.constraint_sum(cnt_idx)
             col_cnt += cnt_sum
         return col_cnt
@@ -116,7 +119,7 @@ class Sudoku(object):
         num = self.num
         dim = self.num_dim
         for i in range(num):
-            blk_idx += range(offset, offset+num)
+            blk_idx += range(offset, offset + num)
             offset += dim
         return blk_idx
 
@@ -168,4 +171,3 @@ class Sudoku(object):
     def make_sudoku_matrix(self, **argv):
         sdk_cnt = self.make_sudoku_constraint(**argv)
         return self.make_constraint_matrix(sdk_cnt)
-

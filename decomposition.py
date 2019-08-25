@@ -1,12 +1,15 @@
 # encode: utf8
+from __future__ import print_function
 
 import sys
+
 import numpy as np
 from scipy import linalg
 
 from base import Optimum
-from simplex import simplex_revised
 from simplex import align_basis
+from simplex import simplex_revised
+
 
 def check_size_dantzig(c, L, b0, A, b):
     is_equal_list = lambda x, y: len(x) == len(y) and all(x[i] == y[i] for i in range(len(x)))
@@ -18,10 +21,10 @@ def check_size_dantzig(c, L, b0, A, b):
     row_b = [len(x) for x in b]
     row_lnk = len(b0)
     if n_blk != len(c) or n_blk != len(L) or n_blk != len(b) \
-       or any(row_lnk != len(L[i]) for i in range(len(L))):
+            or any(row_lnk != len(L[i]) for i in range(len(L))):
         return False
     elif not is_equal_list(col_blk, col_L) or not is_equal_list(col_blk, col_c) \
-         or not is_equal_list(row_blk, row_b): 
+            or not is_equal_list(row_blk, row_b):
         return False
     else:
         return True
@@ -49,12 +52,12 @@ def calc_comb_extreme(extreme, comb_list, weight, dim, offset_blk):
         i, j = comb_list[k]
         if i < 0:
             continue
-        x_ext = extreme[i][j] 
+        x_ext = extreme[i][j]
         offset = offset_blk[i]
         end = offset + len(x_ext)
         x_opt[offset:end] += x_ext * weight[k]
     return x_opt
-        
+
 
 class SubSystem(object):
     def __init__(self, c, L, A, b, **argv):
@@ -82,8 +85,8 @@ class SubSystem(object):
     def solve_sub(self, lmbd, lmbd_i, max_upper=1e16, debug=False):
         c_sub = self.c - self.L.T.dot(lmbd)
         if debug:
-            print "sub c\t%s" % str(c_sub)  
-            print "sub intercept\t%s" % -lmbd_i
+            print("sub c\t%s" % str(c_sub))
+            print("sub intercept\t%s" % -lmbd_i)
         ret = simplex_revised(c_sub, self.A, self.b, self.basis)
         if type(ret) == int:
             return max_upper
@@ -93,7 +96,7 @@ class SubSystem(object):
             self.basis = basis
             self.x_b = x_b
             z_opt = np.dot(c_sub, x_b) - lmbd_i
-            return z_opt 
+            return z_opt
 
     def calc_column(self):
         return self.L.dot(self.x_b)
@@ -141,7 +144,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     if is_neg_any(b0) or any(is_neg_any(i) for i in b):
         sys.stderr.write("Basis infeasible b0:%s b:%s\n" % (str(b0), str(b)))
         return -1
-    
+
     # problem size
     n_blk = len(A)
     row_blk = [x.shape[0] for x in A]
@@ -160,14 +163,14 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     if x0 is None:
         x0 = [solve_basis_system(A[i], b[i], basis[i]) for i in range(n_blk)]
     if debug:
-        print "Init"
-        print "Block num\t%s" % n_blk
-        print "Block row\t%s" % str(row_blk)
-        print "Block col\t%s" % str(col_blk)
-        print "Block offset\t%s" % str(offset_blk)
-        print "Block x0\t%s" % str(x0)
-        print "Block col_tot\t%s" %  col_tot
-        print "Link num\t%s" % row_lnk
+        print("Init")
+        print("Block num\t%s" % n_blk)
+        print("Block row\t%s" % str(row_blk))
+        print("Block col\t%s" % str(col_blk))
+        print("Block offset\t%s" % str(offset_blk))
+        print("Block x0\t%s" % str(x0))
+        print("Block col_tot\t%s" % col_tot)
+        print("Link num\t%s" % row_lnk)
 
     # initialization
     ## master problem, size row_lnk+n_blk
@@ -182,9 +185,9 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     q_basis = []
     for i in range(n_blk):
         qi = L[i].dot(x0[i])
-        #print "Li\t%s" % str(L[i])
-        #print "xi\t%s" % str(x0[i])
-        #print "qi\t%s" % str(qi)
+        # print("Li\t%s" % str(L[i]))
+        # print("xi\t%s" % str(x0[i]))
+        # print("qi\t%s" % str(qi))
         ei = np.zeros(n_blk)
         ei[i] = 1
         qi = np.concatenate((qi, ei))
@@ -192,20 +195,20 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     q_basis = np.array(q_basis)
     Bt_master = np.concatenate((q_slack, q_basis.T), axis=1).T
     ### feasible x
-    #x_master = linalg.solve(Bt_master, g_master, transposed=True)
+    # x_master = linalg.solve(Bt_master, g_master, transposed=True)
     ### lagrange multiplier
-    #lmbd_master = linalg.solve(Bt_master, p_master)
+    # lmbd_master = linalg.solve(Bt_master, p_master)
     ## extreme point
     extreme = dict((i, [x0[i]]) for i in range(n_blk))
     basis_zero = [(-1, -1) for i in range(row_lnk)]
     basis_init = [(i, 0) for i in range(n_blk)]
     basis_master = basis_zero + basis_init
     if debug:
-        print "Master g\t%s" % str(g_master)
-        print "Master p\t%s" % str(p_master)
-        print "Master Q\n%s" % str(Bt_master.T)
-        print "Master extreme\t%s" % str(extreme)
-        print "Master basis\t%s" % str(basis_master)
+        print("Master g\t%s" % str(g_master))
+        print("Master p\t%s" % str(p_master))
+        print("Master Q\n%s" % str(Bt_master.T))
+        print("Master extreme\t%s" % str(extreme))
+        print("Master basis\t%s" % str(basis_master))
 
     # iteration
     for itr in range(max_iter):
@@ -214,15 +217,15 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
         x_master = linalg.lu_solve(lu_p, g_master)
         lmbd_master = linalg.lu_solve(lu_p, p_master, trans=1)
         if debug:
-            print "\nIteration %d" % itr
-            print "Master z\t%s" %  np.dot(x_master, p_master)
-            print "Master basis\t%s" % str(basis_master)
-            print "Master B\n%s" % str(Bt_master.T)
-            print "Master x\t%s" % str(x_master)
-            print "Master p\t%s" % str(p_master)
-            print "Master lambda\t%s" % str(lmbd_master)
-            #x_prime = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
-            #print "Prime x\t%s" % str(x_prime)
+            print("\nIteration %d" % itr)
+            print("Master z\t%s" % np.dot(x_master, p_master))
+            print("Master basis\t%s" % str(basis_master))
+            print("Master B\n%s" % str(Bt_master.T))
+            print("Master x\t%s" % str(x_master))
+            print("Master p\t%s" % str(p_master))
+            print("Master lambda\t%s" % str(lmbd_master))
+            # x_prime = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
+            # print("Prime x\t%s" % str(x_prime))
         ## solve sub system
         lmbd0 = lmbd_master[0:row_lnk]
         lmbd1 = lmbd_master[row_lnk:]
@@ -246,11 +249,11 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
         q_new = np.concatenate((q_new, e_new))
         y_new = linalg.lu_solve(lu_p, q_new)
         if debug:
-            print "Sub index\t%s" % min_idx
-            print "Sub z\t%s" % min_sub
-            print "Sub x\t%s" % str(x_new)
-            print "Master q_new\t%s" % str(q_new)
-            print "Master y_new\t%s" % str(y_new)
+            print("Sub index\t%s" % min_idx)
+            print("Sub z\t%s" % min_sub)
+            print("Sub x\t%s" % str(x_new))
+            print("Master q_new\t%s" % str(q_new))
+            print("Master y_new\t%s" % str(y_new))
         pos_ind = [i for i in range(len(y_new)) if is_pos(y_new[i])]
         if len(pos_ind) == 0:
             sys.stderr.write("Problem unbounded\n")
@@ -266,4 +269,3 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
     x_opt = calc_comb_extreme(extreme, basis_master, x_master, col_tot, offset_blk)
     z_opt = x_opt.dot(c_tot)
     return Optimum(z_opt=z_opt, x_opt=x_opt, num_iter=itr)
-

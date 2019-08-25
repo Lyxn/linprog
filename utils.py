@@ -1,6 +1,8 @@
 # encode: utf8
-import sys
+from __future__ import print_function
+
 import numpy as np
+
 
 def get_unit_vector(dim, idx):
     unit = np.zeros(dim)
@@ -50,4 +52,3 @@ def floor_residue(x):
 
 def take_index(arr, idxs):
     return [arr[i] for i in idxs]
-

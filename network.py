@@ -8,31 +8,32 @@ Florian M., Lebeuf D., An Efficient Implementation of the Network Simplex Method
 API: Predecessor, Son, Brother, Depth or Number of Successors
 ATI: Predecessor, Preorder(Thread), Depth or Number of Successors
 """
-import sys
+
 
 class Arc(object):
     def __init__(self, aid, s, d, cost, capacity=1e16, artificial=False):
         self.aid = aid
-        self.s = s ## start
-        self.d = d ## end
+        self.s = s  ## start
+        self.d = d  ## end
         self.cost = cost
         self.capacity = capacity
         self.artifical = artificial
         ## flow info
         self.flow = 0
         self.reduced_cost = None
-        self.state = -1 ## Lower -1 Tree 0 Upper 1
-        self.direction = False ## False Down; True Up
+        self.state = -1  ## Lower -1 Tree 0 Upper 1
+        self.direction = False  ## False Down; True Up
 
     def __eq__(self, arc):
         return self.s == arc.s and self.d == arc.d
 
     def __str__(self):
-        #string = "ArcId: %d (%d %d) Cost %d Flow %d" % (self.aid, self.s, self.d, self.cost, self.flow)
+        # string = "ArcId: %d (%d %d) Cost %d Flow %d" % (self.aid, self.s, self.d, self.cost, self.flow)
         string = "ArcId: %d (%d %d) Cost %d Art %d Flow %d Dir %s Red %s" % \
-                 (self.aid, self.s, self.d, self.cost, self.artifical, self.flow, str(self.direction), str(self.reduced_cost))
+                 (self.aid, self.s, self.d, self.cost, self.artifical, self.flow, str(self.direction),
+                  str(self.reduced_cost))
         return string
-    
+
     def get_neighbor(self, nid):
         if self.s == nid:
             return self.d
@@ -50,13 +51,13 @@ class Arc(object):
 
 class Node(object):
     def __init__(self, nid, supply):
-        self.nid = nid 
+        self.nid = nid
         self.supply = supply
         self.arc_out = set()
         ## Spanning Tree
         self.is_root = False
         self.is_leaf = False
-        self.neighbor = set() ## neighbor or chlidren
+        self.neighbor = set()  ## neighbor or chlidren
         self.pred = -1
         self.num_succ = None
         ## XTI
@@ -74,9 +75,9 @@ class Node(object):
 
     def __str__(self):
         string = "NodeId: %d Supply %d Price %s Pred %d Son %d Brother %d Depth %s NumSucc %s" % \
-                (self.nid, self.supply, self.price, self.pred, self.son, self.brother, self.depth, self.num_succ)
+                 (self.nid, self.supply, self.price, self.pred, self.son, self.brother, self.depth, self.num_succ)
         return string
-    
+
     def add_arc_out(self, aid):
         self.arc_out.add(aid)
 
@@ -103,7 +104,7 @@ class Network(object):
         max_line = 10
         string = "%s" % self.num_node
         cnt = 0
-        for nid, node in self.nodes.iteritems():
+        for nid, node in self.nodes.items():
             head = "%d, %d" % (nid, node.supply)
             arcs = ["%d, %d" % (self.arcs[aid].d, self.arcs[aid].cost) for aid in node.arc_out]
             string = "%s\n%s: %s" % (string, head, "; ".join(arcs))
@@ -178,20 +179,19 @@ def read_network(file_nwk, nwk):
     return nwk
 
 
-
 def find_shortest_path_bellman(nwk, dst):
     max_price = 1e16
-    for node in nwk.nodes.itervalues():
+    for node in nwk.nodes.values():
         node.price = max_price
     dst.price = 0
     dst.pred = -1
     while True:
         has_change = False
-        for arc in nwk.arcs.itervalues():
-            s = nwk.nodes[arc.s] 
+        for arc in nwk.arcs.values():
+            s = nwk.nodes[arc.s]
             if s == dst:
                 continue
-            d = nwk.nodes[arc.d] 
+            d = nwk.nodes[arc.d]
             if d.price == max_price:
                 continue
             price = arc.cost + d.price
@@ -206,7 +206,7 @@ def find_shortest_path_bellman(nwk, dst):
 
 def find_shortest_path_dijkstra(nwk, dst):
     max_price = 1e16
-    for node in nwk.nodes.itervalues():
+    for node in nwk.nodes.values():
         node.price = max_price
     dst.price = 0
     dst.pred = -1
@@ -215,7 +215,7 @@ def find_shortest_path_dijkstra(nwk, dst):
         ## find current min node
         min_price = max_price
         min_node = None
-        for nid, node in nwk.nodes.iteritems():
+        for nid, node in nwk.nodes.items():
             if nid in node_shortest:
                 continue
             if node.price < min_price:
@@ -225,7 +225,7 @@ def find_shortest_path_dijkstra(nwk, dst):
             break
         node_shortest.add(min_node)
         ## update price
-        for nid, node in nwk.nodes.iteritems():
+        for nid, node in nwk.nodes.items():
             if nid in node_shortest:
                 continue
             for aid in node.arc_out:
@@ -233,9 +233,8 @@ def find_shortest_path_dijkstra(nwk, dst):
                 d = nwk.nodes[arc.d]
                 if d.price == max_price:
                     continue
-                price = arc.cost + d.price 
+                price = arc.cost + d.price
                 if node.price > price:
                     node.pred = arc.d
                     node.price = price
     return nwk
-

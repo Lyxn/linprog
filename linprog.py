@@ -1,10 +1,14 @@
 # encode: utf8
+from __future__ import print_function
+
 import sys
-import numpy as np
+from functools import reduce
+
 from scipy import linalg
 
 from simplex import simplex_revised
 from utils import *
+
 
 def form_standard(c, A_eq=None, b_eq=None, A_ub=None, b_ub=None, lower={}, upper={}, **argv):
     """
@@ -19,7 +23,7 @@ def form_standard(c, A_eq=None, b_eq=None, A_ub=None, b_ub=None, lower={}, upper
     debug = argv.get("debug", False)
     # check 
     if (A_eq is not None and b_eq is None) \
-       or (A_ub is not None and b_ub is None):
+            or (A_ub is not None and b_ub is None):
         sys.stder.write("Problme illegal\n")
         return -1
     # Problem size
@@ -99,7 +103,7 @@ def find_null_variable(basis, A, x_basis, **argv):
 
 def reduce_equation(null_row, null_var, c, A, b, basis):
     row, col = A.shape
-    null_col = reduce(lambda x,y: x+y, null_var)
+    null_col = reduce(lambda x, y: x + y, null_var)
     row_res = [i for i in range(row) if i not in null_row]
     col_res = [i for i in range(col) if i not in null_col]
     c_res = c[col_res]
@@ -108,7 +112,7 @@ def reduce_equation(null_row, null_var, c, A, b, basis):
     A_res = A_res.take(col_res, axis=1)
     basis_res = take_index(basis, row_res)
     return c_res, A_res, b_res, basis_res
-    
+
 
 def init_basis_primal(A, b, **argv):
     """
@@ -159,7 +163,7 @@ def check_basis_slack(basis, A, **argv):
     nonbasis = [i for i in range(col) if i not in basis]
     ## Replace slack with first non-basis
     ## TODO whether the basis is singular
-    replace= argv.get("replace", True)
+    replace = argv.get("replace", True)
     if replace:
         j = 0
         for i in idx_slack:
@@ -195,13 +199,13 @@ def linprog_primal(c, A, b, **argv):
     # size
     row, col = A.shape
     if debug:
-        print "\nProblem size row %s col %s" % (row, col)
+        print("\nProblem size row %s col %s" % (row, col))
     # Make sure b >= 0
     for i in range(row):
         if is_neg(b[i]):
-            b[i] = -b[i] 
-            A[i] = -A[i] 
-    # Init basic solution
+            b[i] = -b[i]
+            A[i] = -A[i]
+            # Init basic solution
     ret0 = init_basis_primal(A, b)
     if type(ret0) == int:
         sys.stderr.write("Problem infeasible\n")
@@ -209,9 +213,9 @@ def linprog_primal(c, A, b, **argv):
     basis = ret0.basis
     x0 = ret0.x_basis
     if debug:
-        print "\nBasic Problem solved"
-        print "basis\t%s" % str(basis)
-        print "x0\t%s" % str(x0)
+        print("\nBasic Problem solved")
+        print("basis\t%s" % str(basis))
+        print("x0\t%s" % str(x0))
     null_row, null_var = find_null_variable(basis, A, x0, lu_basis=ret0.lu_basis)
     if len(null_row) != 0:
         sys.stderr.write("Reduce enable null_row %s null_var %s\n" % (str(null_row), str(null_var)))
@@ -223,13 +227,12 @@ def linprog_primal(c, A, b, **argv):
         sys.stderr.write("Problem unsolved\n")
         return opt
     if debug:
-        print "\nPrimal Problem solved"
-        print "z_opt\t%s" % opt.z_opt
-        print "x_opt\t%s" % str(opt.x_opt)
+        print("\nPrimal Problem solved")
+        print("z_opt\t%s" % opt.z_opt)
+        print("x_opt\t%s" % str(opt.x_opt))
     return opt
 
 
 def linprog(c, **argv):
     c_tot, A_tot, b_tot = form_standard(c, **argv)
     return linprog_primal(c_tot, A_tot, b_tot, **argv)
-

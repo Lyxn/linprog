@@ -1,13 +1,15 @@
-#encode=utf8
+# encode=utf8
+from __future__ import print_function
+
 import numpy as np
 
-from simplex import simplex_revised
-from simplex import simplex_dual
 from decomposition import simplex_dantzig_wolfe
+from linprog import find_null_variable
 from linprog import linprog
 from linprog import linprog_primal
-from linprog import find_null_variable
 from linprog import reduce_equation
+from simplex import simplex_dual
+from simplex import simplex_revised
 
 
 def test_revised():
@@ -18,16 +20,16 @@ def test_revised():
     c = np.array(c)
     A = np.array(A)
     b = np.array(b)
-    print "\nTest linprog"
-    print linprog(c, A_ub=A, b_ub=b)
+    print("\nTest linprog")
+    print(linprog(c, A_ub=A, b_ub=b))
     basis = np.array(basis)
     num_slack = 3
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
-    print "\nTest Revised Simplex"
-    print simplex_revised(c, A, b, basis, debug=True)
-    print "\nTest Two Phrase Method"
-    print linprog_primal(c, A, b, debug=True)
+    print("\nTest Revised Simplex")
+    print(simplex_revised(c, A, b, basis, debug=True))
+    print("\nTest Two Phrase Method")
+    print(linprog_primal(c, A, b, debug=True))
 
 
 def test_dual0():
@@ -40,8 +42,8 @@ def test_dual0():
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
-    print "\nTest Dual Simplex"
-    print simplex_dual(c, -A, -b, basis, debug=True)
+    print("\nTest Dual Simplex")
+    print(simplex_dual(c, -A, -b, basis, debug=True))
 
 
 def test_dual1():
@@ -54,8 +56,8 @@ def test_dual1():
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
-    print "\nTest Dual Simplex"
-    print simplex_dual(c, A, b, basis, debug=True, max_iter=10)
+    print("\nTest Dual Simplex")
+    print(simplex_dual(c, A, b, basis, debug=True, max_iter=10))
 
 
 def test_dwp0_revised():
@@ -65,8 +67,8 @@ def test_dwp0_revised():
     c = np.array(c)
     A = np.array(A)
     b = np.array(b)
-    print "\nTest Dantzig Wolfe 0"
-    print linprog(c, A_ub=A, b_ub=b, debug=True)
+    print("\nTest Dantzig Wolfe 0")
+    print(linprog(c, A_ub=A, b_ub=b, debug=True))
 
 
 def test_dwp0_dantzig():
@@ -86,8 +88,8 @@ def test_dwp0_dantzig():
     L = [np.array(x) for x in L]
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
-    print "\nTest Dantzig Wolfe 0"
-    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True)
+    print("\nTest Dantzig Wolfe 0")
+    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True))
 
 
 def test_dwp1_dantzig():
@@ -107,32 +109,35 @@ def test_dwp1_dantzig():
     L = [np.array(x) for x in L]
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
-    print "\nTest Dantzig Wolfe 1"
-    print simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True)
+    print("\nTest Dantzig Wolfe 1")
+    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True))
 
 
 def test_reduce_equation():
-    print "\nTest reduce equation"
+    print("\nTest reduce equation")
     c = [4, 3, 2, 1]
     A = [[2, 3, 4, 4], [1, 1, 2, 1]]
     b = [6, 3]
     c = np.array(c)
     A = np.array(A)
     b = np.array(b)
-    print "Primal Problem"
-    print linprog(c, A_eq=A, b_eq=b)
+    print("Primal Problem")
+    print(linprog(c, A_eq=A, b_eq=b))
     row, col = A.shape
     c_s = np.concatenate((np.zeros(col), np.ones(row)))
     A_s = np.concatenate((A, np.eye(row)), axis=1)
     basis = range(col, col + row)
     opt = simplex_revised(c_s, A_s, b, basis, ret_lu=True)
+    basis = opt.basis
+
     null_row, null_var = find_null_variable(opt.basis, A, opt.x_basis, lu_basis=opt.lu_basis)
     c_res, A_res, b_res, basis_res = reduce_equation(null_row, null_var, c, A, b, basis)
-    print "\nReduce Problem"
-    print "A\n%s\n%s" % (str(A), str(A_res))
-    print "b\n%s\n%s" % (str(b), str(b_res))
-    print "c\n%s\n%s" % (str(c), str(c_res))
-    print simplex_revised(c_res, A_res, b_res, basis_res)
+    print("\nReduce Problem")
+    print("A\n%s\n%s" % (str(A), str(A_res)))
+    print("b\n%s\n%s" % (str(b), str(b_res)))
+    print("c\n%s\n%s" % (str(c), str(c_res)))
+    print("basis\n%s\n%s" % (str(basis), str(basis_res)))
+    print(simplex_revised(c_res, A_res, b_res, basis_res))
 
 
 if __name__ == "__main__":
@@ -143,4 +148,3 @@ if __name__ == "__main__":
     test_dwp0_dantzig()
     test_dwp1_dantzig()
     test_reduce_equation()
-

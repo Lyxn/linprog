@@ -4,14 +4,20 @@
 1. Algorithm will fail when the basis is singular. 
    One could increase `eps` to avoid the bad column with nearly zero cost. 
 
-## TODO 
+## TODO
+* Support box constraint
 * Reduction of inequality, find nonextremal variable
 * One column update for LU decompostion
 """
+from __future__ import print_function
+
 import sys
+
 import numpy as np
 from scipy import linalg
+
 from base import Optimum
+
 
 def align_basis(x_b, basis, dim):
     x0 = np.zeros(dim)
@@ -67,6 +73,7 @@ def simplex_revised(c, A, b, basis, **argv):
         sys.stderr.write("Basis illegal b:%s" % str(b))
         return -1
 
+    basis = list(basis)
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
@@ -81,12 +88,12 @@ def simplex_revised(c, A, b, basis, **argv):
         r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         if debug:
-            print "\nIteration %d" % itr
-            print "z\t%s" % z0
-            print "basis\t%s" % str(basis)
-            print "x_b\t%s" % str(x_b)
-            print "lambda\t%s" % str(lmbd)
-            print "r_d\t%s" % str(r_d)
+            print("\nIteration %d" % itr)
+            print("z\t%s" % z0)
+            print("basis\t%s" % str(basis))
+            print("x_b\t%s" % str(x_b))
+            print("lambda\t%s" % str(lmbd))
+            print("r_d\t%s" % str(r_d))
         # check reduced cost
         neg_ind = [i for i in range(len(r_d)) if is_neg(r_d[i])]
         if len(neg_ind) == 0:
@@ -110,8 +117,8 @@ def simplex_revised(c, A, b, basis, **argv):
         ind_out = basis[out]
         basis[out] = ind_new
         if debug:
-            print "y_q\t%s" % str(y_q)
-            print "basis in %s out %s" % (ind_new, ind_out)
+            print("y_q\t%s" % str(y_q))
+            print("basis in %s out %s" % (ind_new, ind_out))
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
     sys.stderr.write("Current optimum %s\n" % z0)
     return -3
@@ -153,6 +160,7 @@ def simplex_dual(c, A, b, basis, **argv):
         sys.stderr.write(info)
         return -1
 
+    basis = list(basis)
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
@@ -171,12 +179,12 @@ def simplex_dual(c, A, b, basis, **argv):
             sys.stderr.write("Dual infeasible r_d:%s\n" % str(r_d))
             return -1
         if debug:
-            print "\nIteration %d" % itr
-            print "z\t%s" % z0
-            print "basis\t%s" % str(basis)
-            print "x_b\t%s" % str(x_b)
-            print "lambda\t%s" % str(lmbd)
-            print "r_d\t%s" % str(r_d)
+            print("\nIteration %d" % itr)
+            print("z\t%s" % z0)
+            print("basis\t%s" % str(basis))
+            print("x_b\t%s" % str(x_b))
+            print("lambda\t%s" % str(lmbd))
+            print("r_d\t%s" % str(r_d))
         # check x_b
         neg_ind = [i for i in range(len(x_b)) if is_neg(x_b[i])]
         if len(neg_ind) == 0:
@@ -202,9 +210,8 @@ def simplex_dual(c, A, b, basis, **argv):
         ind_new = nonbasis[y_neg[min_ind]]
         basis[ind_neg] = ind_new
         if debug:
-            print "y_q\t%s" % str(y_q)
-            print "basis in %s out %s" % (ind_new, ind_out)
+            print("y_q\t%s" % str(y_q))
+            print("basis in %s out %s" % (ind_new, ind_out))
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
     sys.stderr.write("Current optimum %s\n" % z0)
     return -3
-

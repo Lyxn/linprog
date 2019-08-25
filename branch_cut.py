@@ -1,15 +1,17 @@
 # encode: utf8
+from __future__ import print_function
+
 import sys
-from collections import defaultdict
+
 import numpy as np
 from scipy import linalg
 
-from base import Optimum
-from utils import get_unit_vector 
-from utils import is_integer
-from utils import floor_residue
 from linprog import form_standard
 from simplex import simplex_dual
+from utils import floor_residue
+from utils import get_unit_vector
+from utils import is_integer
+
 
 class Node(object):
     """ Node of Branch
@@ -33,6 +35,7 @@ class Node(object):
         is_int: whether or not the subproblem has a integer solution
         status: problem status
     """
+
     def __init__(self, nid, pid=0, **argv):
         self.nid = nid
         self.pid = pid
@@ -79,13 +82,13 @@ class Node(object):
         num_var = len(c_raw)
         num_raw = len(b_raw)
         self.num_var = num_var
-        basis_tot = self.basis_raw + range(num_var, num_var + self.num_slack)
+        basis_tot = self.basis_raw + list(range(num_var, num_var + self.num_slack))
         if debug:
-            print "\nSubproblem"
-            print "num_var\t%s" % num_var
-            print "c_tot\t%s" % str(c_tot)
-            print "b_tot\t%s" % str(b_tot)
-            print "A_tot\n%s" % str(A_tot)
+            print("\nSubproblem")
+            print("num_var\t%s" % num_var)
+            print("c_tot\t%s" % str(c_tot))
+            print("b_tot\t%s" % str(b_tot))
+            print("A_tot\n%s" % str(A_tot))
         opt = simplex_dual(c_tot, A_tot, b_tot, basis_tot)
         if type(opt) == int:
             sys.stderr.write("Problem unsolvable\n")
@@ -102,11 +105,11 @@ class Node(object):
     def is_integer_solution(basis, x_opt, int_idx):
         for i in basis:
             if i >= len(x_opt):
-                print "Integer fail %s %s %s" % (i, str(x_opt), str(basis))
+                print("Integer fail %s %s %s" % (i, str(x_opt), str(basis)))
             if i in int_idx and not is_integer(x_opt[i]):
                 return False
         return True
-       
+
     def process(self, c_raw, A_raw, b_raw, int_idx, **argv):
         self.status = self.solve(c_raw, A_raw, b_raw, **argv)
         if self.is_solved:
@@ -128,18 +131,18 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
     num_var = len(c)
     if int_idx is None:
         int_idx = range(num_var)
-    tree_dict = {} 
+    tree_dict = {}
     root_id = 0
     root = Node(0, basis_raw=basis)
-    tree_dict[root_id] = root 
+    tree_dict[root_id] = root
     node_stack = [root_id]
     opt_val = 1e16
     opt_nid = 0
     active_cut_tot = {}
     if debug:
-        print "\nInit"
-        print "num_var\t%s" % num_var
-        print "int_idx\t%s" % str(int_idx) 
+        print("\nInit")
+        print("num_var\t%s" % num_var)
+        print("int_idx\t%s" % str(int_idx))
     for itr in range(max_iter):
         if len(node_stack) == 0:
             return opt_nid, tree_dict
@@ -148,16 +151,16 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
             return -1
         node = tree_dict[nid]
         if debug:
-            print "\nIteration %s" % itr
-            print "nid\t%s" % nid 
-            print "basis pre\t%s" % node.basis_raw
+            print("\nIteration %s" % itr)
+            print("nid\t%s" % nid)
+            print("basis pre\t%s" % node.basis_raw)
         ret = node.process(c, A_eq, b_eq, int_idx=int_idx, max_iter=max_iter_sub)
         if debug:
-            print "Node"
-            print "status\t%s" % node.status
-            print "z\t%s" % node.z_opt
-            print "x\t%s" % node.x_opt
-            print "basis pro\t%s" % node.basis_raw
+            print("Node")
+            print("status\t%s" % node.status)
+            print("z\t%s" % node.z_opt)
+            print("x\t%s" % node.x_opt)
+            print("basis pro\t%s" % node.basis_raw)
         ## Pruning
         if node.status < 0:
             sys.stderr.write("SubProblem unsolvable\n")
@@ -192,7 +195,7 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
         lower = {}
         lower.update(node.lower)
         lower[var_idx] = np.ceil(b_val)
-        nid_lb = len(tree_dict) 
+        nid_lb = len(tree_dict)
         node_lb = Node(nid_lb, pid=nid, basis_raw=node.basis_raw, lower=lower, upper=node.upper)
         tree_dict[nid_lb] = node_lb
         ### push stack
@@ -204,10 +207,10 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
             node_stack.append(nid_ub)
 
         if debug:
-            print "Branch"
-            print "var\t%s" % var_idx
-            print "val\t%s" % b_val
-            print "stack\t%s" % str(node_stack)
+            print("Branch")
+            print("var\t%s" % var_idx)
+            print("val\t%s" % b_val)
+            print("stack\t%s" % str(node_stack))
     return opt_nid, tree_dict
 
 
@@ -217,8 +220,8 @@ def get_gomory_cut(A, x_basis, basis, cut_idx, **argv):
     # init
     row, col = A.shape
     nonbasis = [i for i in range(col) if i not in basis]
-    B = A.take(basis, axis=1) 
-    D = A.take(nonbasis, axis=1) 
+    B = A.take(basis, axis=1)
+    D = A.take(nonbasis, axis=1)
     if lu_basis is None:
         lu_basis = linalg.lu_factor(B)
     # calc y_cut
@@ -230,7 +233,7 @@ def get_gomory_cut(A, x_basis, basis, cut_idx, **argv):
     y_cut = np.zeros(col)
     y_cut[nonbasis] = y_res
     return (y_cut, b_cut)
-    
+
 
 def proc_gomory_cut(c, A, b, basis, **argv):
     # argv 
@@ -270,11 +273,11 @@ def proc_gomory_cut(c, A, b, basis, **argv):
             return opt, cut_pool
         ## calc cut
         if debug:
-            print "\nIteration %s" % itr
-            print "size\t%s %s" % (row, col)
-            print "basis\t%s" % str(basis)
-            print "x_basis\t%s" % x_basis
-            print "cut_idx\t%s" % x_basis
+            print("\nIteration %s" % itr)
+            print("size\t%s %s" % (row, col))
+            print("basis\t%s" % str(basis))
+            print("x_basis\t%s" % x_basis)
+            print("cut_idx\t%s" % cut_idx)
         y_cut, b_cut = get_gomory_cut(A_tot, x_basis, basis, cut_idx, lu_basis=lu_basis)
         cid = len(cut_pool)
         cut_pool[cid] = (y_cut, b_cut)
@@ -286,11 +289,11 @@ def proc_gomory_cut(c, A, b, basis, **argv):
         b_tot = np.concatenate((b_tot, [b_cut]))
         basis.append(col)
         if debug:
-            print "cut yl\t%s" % str(y_cut)
-            print "cut y0\t%s" % b_cut
-            print "basis\t%s" % str(basis)
-            print "c_tot\t%s" % str(c_tot)
-            print "b_tot\t%s" % str(b_tot)
+            print("cut yl\t%s" % str(y_cut))
+            print("cut y0\t%s" % b_cut)
+            print("basis\t%s" % str(basis))
+            print("c_tot\t%s" % str(c_tot))
+            print("b_tot\t%s" % str(b_tot))
         opt = simplex_dual(c_tot, A_tot, b_tot, basis, ret_lu=True, max_iter=max_iter_sub)
         if type(opt) == int:
             sys.stderr.write("Problem unsolvable\n")
@@ -299,7 +302,6 @@ def proc_gomory_cut(c, A, b, basis, **argv):
         x_basis = opt.x_basis
         lu_basis = opt.lu_basis
         if debug:
-            print opt
-    
-    return opt, cut_pool
+            print(opt)
 
+    return opt, cut_pool
