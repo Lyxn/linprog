@@ -1,7 +1,7 @@
 # encode: utf8
 from __future__ import print_function
 
-from network_simplex import *
+from graph.network_simplex import *
 
 
 def test_read_network():

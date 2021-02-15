@@ -5,7 +5,7 @@ import sys
 
 import numpy as np
 
-from network import *
+from graph.network import *
 
 
 class Cycle(object):
