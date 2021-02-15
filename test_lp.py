@@ -11,6 +11,7 @@ from linprog import reduce_equation
 from simplex import simplex_dual
 from simplex import simplex_revised
 
+DEBUG = False
 
 def test_revised():
     c = [-3, -1, -3]
@@ -27,9 +28,9 @@ def test_revised():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print("\nTest Revised Simplex")
-    print(simplex_revised(c, A, b, basis, debug=True))
+    print(simplex_revised(c, A, b, basis, debug=DEBUG))
     print("\nTest Two Phrase Method")
-    print(linprog_primal(c, A, b, debug=True))
+    print(linprog_primal(c, A, b, debug=DEBUG))
 
 
 def test_dual0():
@@ -42,8 +43,8 @@ def test_dual0():
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
-    print("\nTest Dual Simplex")
-    print(simplex_dual(c, -A, -b, basis, debug=True))
+    print("\nTest Dual Simplex 0")
+    print(simplex_dual(c, -A, -b, basis, debug=DEBUG))
 
 
 def test_dual1():
@@ -56,8 +57,8 @@ def test_dual1():
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
-    print("\nTest Dual Simplex")
-    print(simplex_dual(c, A, b, basis, debug=True, max_iter=10))
+    print("\nTest Dual Simplex 1")
+    print(simplex_dual(c, A, b, basis, debug=DEBUG, max_iter=10))
 
 
 def test_dwp0_revised():
@@ -68,7 +69,7 @@ def test_dwp0_revised():
     A = np.array(A)
     b = np.array(b)
     print("\nTest Dantzig Wolfe 0")
-    print(linprog(c, A_ub=A, b_ub=b, debug=True))
+    print(linprog(c, A_ub=A, b_ub=b, debug=DEBUG))
 
 
 def test_dwp0_dantzig():
@@ -89,7 +90,7 @@ def test_dwp0_dantzig():
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
     print("\nTest Dantzig Wolfe 0")
-    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True))
+    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG))
 
 
 def test_dwp1_dantzig():
@@ -110,7 +111,7 @@ def test_dwp1_dantzig():
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
     print("\nTest Dantzig Wolfe 1")
-    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=True))
+    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG))
 
 
 def test_reduce_equation():
