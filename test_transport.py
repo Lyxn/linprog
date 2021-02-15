@@ -1,7 +1,7 @@
 # encode: utf8
 from __future__ import print_function
 
-from transport import *
+from graph.transport import *
 
 
 def test_northwest_corner():

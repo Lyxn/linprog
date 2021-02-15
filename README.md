@@ -1,6 +1,6 @@
 # Linear Programming 
 
-### Introduction
+## Introduction
 Linear programing problem in standard form
 ```
 min  c * x
@@ -37,18 +37,27 @@ s.t. A * x + s = b,
 If the optimum value is zero, then the problem is feasible.
 
 
-### Algorithm 
+## Algorithm 
 
 #### simplex.py 
 1. revised simplex 
 1. dual simplex 
 
+#### decomposition.py
+1. Dantzig Wolfe Decomposition
+
 #### branch_cut.py
 1. branch and bound
 1. Gomory cut
 
-#### decomposition.py
-1. Dantzig Wolfe Decomposition
+### LU
+#### pf_update.py
+1. product form update
+
+#### factorization.py
+1. FT-like update
+
+### Graph
 
 #### dynamic.py
 1. 0-1 knapsack problem
@@ -59,28 +68,28 @@ If the optimum value is zero, then the problem is feasible.
 #### transport.py
 1. transportation problem
 
-#### factorization.py
-1. LU update
-
-
 ### Modeling
 
 #### sudoku.py
 1. Sudoku as 0-1 linear programming
 
 
-### Dependency
+## Dependency
 numpy, scipy.
 
 
-### Reference
-1. Bertsekas D. P. "Network Optimization: Continuous and Discrete Models".
-1. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming".
-1. 刘红英, 夏勇等. "数学规划基础".
+## Reference
 
+### Books
+1. Bertsekas D. P. "Network Optimization: Continuous and Discrete Models". 1998.
+1. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming". 2008.
+1. 刘红英, 夏勇等. "数学规划基础". 2012.
+
+### Papers
+1. Huangfu Q , Hall J A J . Novel update techniques for the revised simplex method[J]. Computational Optimization & Applications, 2015, 60(3):587-608.
 
 ### Further
-1. H.D. Mittelmann, Decision Tree for Optimization Software, http://plato.asu.edu/guide.html (2018).
+1. H.D. Mittelmann, Decision Tree for Optimization Software, http://plato.asu.edu/guide.html.
 1. Coin-OR https://www.coin-or.org/
 1. cvxopt http://cvxopt.org/
 1. MIPLIB http://miplib.zib.de/

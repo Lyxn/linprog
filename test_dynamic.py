@@ -1,7 +1,7 @@
 # encode: utf8
 from __future__ import print_function
 
-from dynamic import *
+from graph.dynamic import *
 
 
 def test_knapsack01():

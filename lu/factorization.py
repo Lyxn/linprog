@@ -8,9 +8,7 @@ def conv_piv(vec):
     num = len(vec)
     raw = list(range(num))
     for i in range(num):
-        trn = raw[vec[i]]
-        raw[vec[i]] = raw[i]
-        raw[i] = trn
+        raw[i], raw[vec[i]] = raw[vec[i]], raw[i]
     return raw
 
 

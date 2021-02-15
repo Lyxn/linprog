@@ -6,17 +6,16 @@
 
 ## TODO
 * Support box constraint
-* Reduction of inequality, find nonextremal variable
-* One column update for LU decompostion
+* Reduction of inequality, find non-extremal variable
 """
 from __future__ import print_function
 
 import sys
 
 import numpy as np
-from scipy import linalg
 
 from base import Optimum
+from lu.pf_update import PF
 
 
 def align_basis(x_b, basis, dim):
@@ -74,17 +73,18 @@ def simplex_revised(c, A, b, basis, **argv):
         return -1
 
     basis = list(basis)
+    pf = PF()
+    pf.invert(A.take(basis, axis=1))
+    cir = 50
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
-        B = A.take(basis, axis=1)
         c_b = c[basis]
         D = A.take(nonbasis, axis=1)
         c_d = c[nonbasis]
         # solve system B
-        lu_p = linalg.lu_factor(B)
-        x_b = linalg.lu_solve(lu_p, b)
-        lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
+        x_b = pf.ftrans(b)
+        lmbd = pf.btrans(c_b)
         r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         if debug:
@@ -101,12 +101,12 @@ def simplex_revised(c, A, b, basis, **argv):
             x_opt = align_basis(x_b, basis, col)
             opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt.lu_basis = lu_p
+                opt.lu_basis = (pf.lu, pf.piv)
             return opt
         ind_new = nonbasis[neg_ind[0]]
         # pivot
         a_q = A.take(ind_new, axis=1)
-        y_q = linalg.lu_solve(lu_p, a_q)
+        y_q = pf.ftrans(a_q)
         pos_ind = [i for i in range(len(y_q)) if is_pos(y_q[i])]
         if len(pos_ind) == 0:
             sys.stderr.write("Problem unbounded\n")
@@ -119,6 +119,10 @@ def simplex_revised(c, A, b, basis, **argv):
         if debug:
             print("y_q\t%s" % str(y_q))
             print("basis in %s out %s" % (ind_new, ind_out))
+        if (itr + 1) % cir == 0:
+            pf.invert(A.take(basis, axis=1))
+        else:
+            pf.update(y_q, out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
     sys.stderr.write("Current optimum %s\n" % z0)
     return -3
@@ -161,17 +165,18 @@ def simplex_dual(c, A, b, basis, **argv):
         return -1
 
     basis = list(basis)
+    pf = PF()
+    pf.invert(A.take(basis, axis=1))
+    cir = 50
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
-        B = A.take(basis, axis=1)
         c_b = c[basis]
         D = A.take(nonbasis, axis=1)
         c_d = c[nonbasis]
         # solve system B
-        lu_p = linalg.lu_factor(B)
-        x_b = linalg.lu_solve(lu_p, b)
-        lmbd = linalg.lu_solve(lu_p, c_b, trans=1)
+        x_b = pf.ftrans(b)
+        lmbd = pf.btrans(c_b)
         r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         # check dual feasible
@@ -192,14 +197,14 @@ def simplex_dual(c, A, b, basis, **argv):
             x_opt = align_basis(x_b, basis, col)
             opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt.lu_basis = lu_p
+                opt.lu_basis = (pf.lu, pf.piv)
             return opt
-        ind_neg = neg_ind[0]
-        ind_out = basis[ind_neg]
+        out = neg_ind[0]
+        ind_out = basis[out]
         # pivot
         e_q = np.zeros(row)
-        e_q[ind_neg] = 1
-        u_q = linalg.lu_solve(lu_p, e_q, trans=1)
+        e_q[out] = 1
+        u_q = pf.btrans(e_q)
         y_q = D.T.dot(u_q)
         y_neg = [i for i in range(len(y_q)) if is_neg(y_q[i])]
         if len(y_neg) == 0:
@@ -208,7 +213,13 @@ def simplex_dual(c, A, b, basis, **argv):
         ratio = [r_d[i] / -y_q[i] for i in y_neg]
         min_ind = np.argmin(ratio)
         ind_new = nonbasis[y_neg[min_ind]]
-        basis[ind_neg] = ind_new
+        basis[out] = ind_new
+        if (itr + 1) % cir == 0:
+            pf.invert(A.take(basis, axis=1))
+        else:
+            aq = A.take(ind_new, axis=1)
+            aqf = pf.ftrans(aq)
+            pf.update(aqf, out)
         if debug:
             print("y_q\t%s" % str(y_q))
             print("basis in %s out %s" % (ind_new, ind_out))

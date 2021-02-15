@@ -8,7 +8,7 @@ from scipy import optimize
 from scipy import sparse
 
 from simplex import simplex_revised
-from sudoku import Sudoku
+from modeling.sudoku import Sudoku
 from utils import is_integer_list
 
 
