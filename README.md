@@ -82,9 +82,10 @@ numpy, scipy.
 
 ### Books
 1. Bertsekas D. P. "Network Optimization: Continuous and Discrete Models". 1998.
-1. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming". 2008.
-2. Pan Pingqi. "Linear Programming Computation". 2014. (中文版于2012年出版)
-3. 刘红英, 夏勇等. "数学规划基础". 2012.
+2. Duff I. S., Erisman A. M., Reid J. K. "Direct Methods for Sparse Matrices". 2017.
+3. Luenberger D. G., Ye Yinyu. "Linear and Nonlinear Programming". 2008.
+4. Pan Pingqi. "Linear Programming Computation". 2014. (中文版于2012年出版)
+5. 刘红英, 夏勇等. "数学规划基础". 2012.
 
 ### Papers
 1. Huangfu Q , Hall J A J . Novel update techniques for the revised simplex method[J]. Computational Optimization & Applications, 2015, 60(3):587-608.
