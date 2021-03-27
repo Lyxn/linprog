@@ -4,8 +4,6 @@ from __future__ import print_function
 import sys
 from functools import reduce
 
-from scipy import linalg
-
 from simplex import simplex_revised
 from utils import *
 
@@ -75,7 +73,7 @@ def find_null_variable(basis, A, x_basis, **argv):
         null_row: row of zero value
         null_val: index of null variable
     """
-    lu_basis = argv.get("lu_basis")
+    lu_factor = argv.get("lu_factor")
     row, col = A.shape
     is_slack = lambda c: c >= col
     nonbasis = [i for i in range(col) if i not in basis]
@@ -86,7 +84,7 @@ def find_null_variable(basis, A, x_basis, **argv):
         if not is_zero(x_basis[rid]):
             continue
         var = basis[rid]
-        inv_basis_row = linalg.lu_solve(lu_basis, get_unit_vector(row, rid), trans=1)
+        inv_basis_row = lu_factor.btrans(get_unit_vector(row, rid))
         y_row = inv_basis_row.dot(D)
         idx_nonzero = [i for i in range(len(y_row)) if not is_zero(y_row[i])]
         y_nonzero = y_row[idx_nonzero]
@@ -216,7 +214,7 @@ def linprog_primal(c, A, b, **argv):
         print("\nBasic Problem solved")
         print("basis\t%s" % str(basis))
         print("x0\t%s" % str(x0))
-    null_row, null_var = find_null_variable(basis, A, x0, lu_basis=ret0.lu_basis)
+    null_row, null_var = find_null_variable(basis, A, x0, lu_factor=ret0.lu_factor)
     if len(null_row) != 0:
         sys.stderr.write("Reduce enable null_row %s null_var %s\n" % (str(null_row), str(null_var)))
         c, A, b, basis = reduce_equation(null_row, null_var, c, A, b, basis)

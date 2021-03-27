@@ -4,22 +4,6 @@ from scipy import linalg
 from utils import *
 
 
-def conv_piv(vec):
-    num = len(vec)
-    raw = list(range(num))
-    for i in range(num):
-        raw[i], raw[vec[i]] = raw[vec[i]], raw[i]
-    return raw
-
-
-def inv_piv(piv):
-    num = len(piv)
-    inv = [0] * num
-    for i in range(num):
-        inv[piv[i]] = i
-    return inv
-
-
 def swap_row(mat, k, j):
     tmp = mat.take(k, axis=0)
     mat[k] = mat[j]

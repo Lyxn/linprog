@@ -13,6 +13,7 @@ from simplex import simplex_revised
 
 DEBUG = False
 
+
 def test_revised():
     c = [-3, -1, -3]
     b = [2, 5, 6]
@@ -22,15 +23,18 @@ def test_revised():
     A = np.array(A)
     b = np.array(b)
     print("\nTest linprog")
-    print(linprog(c, A_ub=A, b_ub=b))
+    ret = linprog(c, A_ub=A, b_ub=b)
+    assert type(ret) != int
     basis = np.array(basis)
     num_slack = 3
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print("\nTest Revised Simplex")
-    print(simplex_revised(c, A, b, basis, debug=DEBUG))
+    ret = simplex_revised(c, A, b, basis, debug=DEBUG)
+    assert type(ret) != int
     print("\nTest Two Phrase Method")
-    print(linprog_primal(c, A, b, debug=DEBUG))
+    ret = linprog_primal(c, A, b, debug=DEBUG)
+    assert type(ret) != int
 
 
 def test_dual0():
@@ -44,7 +48,8 @@ def test_dual0():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
     print("\nTest Dual Simplex 0")
-    print(simplex_dual(c, -A, -b, basis, debug=DEBUG))
+    ret = simplex_dual(c, -A, -b, basis, debug=DEBUG)
+    assert type(ret) != int
 
 
 def test_dual1():
@@ -58,7 +63,8 @@ def test_dual1():
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print("\nTest Dual Simplex 1")
-    print(simplex_dual(c, A, b, basis, debug=DEBUG, max_iter=10))
+    ret = simplex_dual(c, A, b, basis, debug=DEBUG, max_iter=10)
+    assert type(ret) != int
 
 
 def test_dwp0_revised():
@@ -69,7 +75,8 @@ def test_dwp0_revised():
     A = np.array(A)
     b = np.array(b)
     print("\nTest Dantzig Wolfe 0")
-    print(linprog(c, A_ub=A, b_ub=b, debug=DEBUG))
+    ret = linprog(c, A_ub=A, b_ub=b, debug=DEBUG)
+    assert type(ret) != int
 
 
 def test_dwp0_dantzig():
@@ -90,7 +97,8 @@ def test_dwp0_dantzig():
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
     print("\nTest Dantzig Wolfe 0")
-    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG))
+    ret = simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG)
+    assert type(ret) != int
 
 
 def test_dwp1_dantzig():
@@ -111,7 +119,8 @@ def test_dwp1_dantzig():
     A = [np.array(x) for x in A]
     basis = [np.array(x) for x in basis]
     print("\nTest Dantzig Wolfe 1")
-    print(simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG))
+    ret = simplex_dantzig_wolfe(c0, L, b0, A, b, basis=basis, debug=DEBUG)
+    assert type(ret) != int
 
 
 def test_reduce_equation():
@@ -123,22 +132,26 @@ def test_reduce_equation():
     A = np.array(A)
     b = np.array(b)
     print("Primal Problem")
-    print(linprog(c, A_eq=A, b_eq=b))
+    # TODO fix infeasible
+    ret = linprog(c, A_eq=A, b_eq=b)
+    assert type(ret) == int
     row, col = A.shape
     c_s = np.concatenate((np.zeros(col), np.ones(row)))
     A_s = np.concatenate((A, np.eye(row)), axis=1)
     basis = range(col, col + row)
     opt = simplex_revised(c_s, A_s, b, basis, ret_lu=True)
+    assert type(opt) != int
     basis = opt.basis
 
-    null_row, null_var = find_null_variable(opt.basis, A, opt.x_basis, lu_basis=opt.lu_basis)
+    null_row, null_var = find_null_variable(opt.basis, A, opt.x_basis, lu_factor=opt.lu_factor)
     c_res, A_res, b_res, basis_res = reduce_equation(null_row, null_var, c, A, b, basis)
     print("\nReduce Problem")
     print("A\n%s\n%s" % (str(A), str(A_res)))
     print("b\n%s\n%s" % (str(b), str(b_res)))
     print("c\n%s\n%s" % (str(c), str(c_res)))
     print("basis\n%s\n%s" % (str(basis), str(basis_res)))
-    print(simplex_revised(c_res, A_res, b_res, basis_res))
+    ret = simplex_revised(c_res, A_res, b_res, basis_res)
+    assert type(ret) != int
 
 
 if __name__ == "__main__":

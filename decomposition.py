@@ -119,7 +119,7 @@ def simplex_dantzig_wolfe(c, L, b0, A, b, **argv):
         eps: tolerance
         max_iter: max number of iteration
     Return: 
-        success: (basis, x, lambda)
+        success: Optimum
         fail:
         -1: illegal
         -2: unbounded

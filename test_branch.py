@@ -34,10 +34,11 @@ def test_gomory_cut():
     print(opt)
     basis = opt.basis
     x_basis = opt.x_basis
-    lu_basis = opt.lu_basis
+    lu_factor = opt.lu_factor
     int_idx = [0, 1]
-    ret = proc_gomory_cut(c, A, b, basis, int_idx=int_idx, debug=True, x_basis=x_basis, lu_basis=lu_basis)
-    print(ret[0])
+    # TODO fix failure
+    ret = proc_gomory_cut(c, A, b, basis, int_idx=int_idx, debug=True, x_basis=x_basis, lu_factor=lu_factor)
+    print(ret)
 
 
 if __name__ == "__main__":

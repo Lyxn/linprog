@@ -6,7 +6,9 @@
 
 ## TODO
 * Support box constraint
-* Reduction of inequality, find non-extremal variable
+* Phrase 1
+* Presolve
+    ** Reduction of inequality, find non-extremal variable
 """
 from __future__ import print_function
 
@@ -47,7 +49,7 @@ def simplex_revised(c, A, b, basis, **argv):
         eps: tolerance
         max_iter: max number of iteration
     Return: 
-        success: (basis, x, lambda)
+        success: Optimum
         fail:
         -1: illegal
         -2: unbounded
@@ -74,7 +76,7 @@ def simplex_revised(c, A, b, basis, **argv):
 
     basis = list(basis)
     pf = PF()
-    pf.invert(A.take(basis, axis=1))
+    pf.factor(A.take(basis, axis=1))
     cir = 50
     # iteration
     for itr in range(max_iter):
@@ -101,7 +103,7 @@ def simplex_revised(c, A, b, basis, **argv):
             x_opt = align_basis(x_b, basis, col)
             opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt.lu_basis = (pf.lu, pf.piv)
+                opt.lu_factor = pf.lu_factor
             return opt
         ind_new = nonbasis[neg_ind[0]]
         # pivot
@@ -120,7 +122,7 @@ def simplex_revised(c, A, b, basis, **argv):
             print("y_q\t%s" % str(y_q))
             print("basis in %s out %s" % (ind_new, ind_out))
         if (itr + 1) % cir == 0:
-            pf.invert(A.take(basis, axis=1))
+            pf.factor(A.take(basis, axis=1))
         else:
             pf.update(y_q, out)
     sys.stderr.write("Iteration exceed %s\n" % max_iter)
@@ -142,7 +144,7 @@ def simplex_dual(c, A, b, basis, **argv):
         eps: tolerance
         max_iter: max number of iteration
     Return: 
-        success: (basis, x, lambda)
+        success: Optimum
         fail:
         -1: illegal
         -2: unbounded
@@ -166,7 +168,7 @@ def simplex_dual(c, A, b, basis, **argv):
 
     basis = list(basis)
     pf = PF()
-    pf.invert(A.take(basis, axis=1))
+    pf.factor(A.take(basis, axis=1))
     cir = 50
     # iteration
     for itr in range(max_iter):
@@ -197,7 +199,7 @@ def simplex_dual(c, A, b, basis, **argv):
             x_opt = align_basis(x_b, basis, col)
             opt = Optimum(z_opt=z0, x_opt=x_opt, lmbd_opt=lmbd, basis=basis, x_basis=x_b, num_iter=itr)
             if ret_lu:
-                opt.lu_basis = (pf.lu, pf.piv)
+                opt.lu_factor = pf.lu_factor
             return opt
         out = neg_ind[0]
         ind_out = basis[out]
@@ -215,7 +217,7 @@ def simplex_dual(c, A, b, basis, **argv):
         ind_new = nonbasis[y_neg[min_ind]]
         basis[out] = ind_new
         if (itr + 1) % cir == 0:
-            pf.invert(A.take(basis, axis=1))
+            pf.factor(A.take(basis, axis=1))
         else:
             aq = A.take(ind_new, axis=1)
             aqf = pf.ftrans(aq)

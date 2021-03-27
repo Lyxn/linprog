@@ -1,9 +1,9 @@
 # encode: utf8
-import numpy as np
-from scipy import linalg
+
+from lu.factor import LAScipy
 
 
-class EtaCol(object):
+class EtaCol:
     def __init__(self, eta, p):
         self.eta = eta
         self.p = p
@@ -25,28 +25,26 @@ class EtaCol(object):
         return x
 
 
-class PF(object):
-    def __init__(self):
-        self.lu = None
-        self.piv = None
+class PF:
+    def __init__(self, la=LAScipy):
+        self.lu_factor = la()
         self.factors = []
 
-    def invert(self, B):
-        self.lu, self.piv = linalg.lu_factor(B)
+    def factor(self, B):
+        self.lu_factor.factor(B)
         self.factors = []
 
     def ftrans(self, x):
-        x = linalg.lu_solve((self.lu, self.piv), x)
+        x = self.lu_factor.ftrans(x)
         for es in self.factors:
             x = es.ftrans(x)
         return x
 
     def btrans(self, x):
         ns = len(self.factors)
-        x = np.array(x)
         for i in range(ns - 1, -1, -1):
             x = self.factors[i].btrans(x)
-        x = linalg.lu_solve((self.lu, self.piv), x, trans=1)
+        x = self.lu_factor.btrans(x)
         return x
 
     def update(self, eta, p):
