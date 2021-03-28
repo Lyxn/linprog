@@ -1,4 +1,11 @@
 # encode: utf8
+"""
+TODO
+* Phrase 1
+    ** single variable method
+* Presolve
+    ** Reduction of inequality, find non-extremal variable
+"""
 from __future__ import print_function
 
 import sys
@@ -124,7 +131,7 @@ def init_basis_primal(A, b, **argv):
         eps: tolerance
         max_iter: max number of iteration
     Return: 
-        success: (basis, x, lambda)
+        success: Optimum
         fail:
         -1: invalid
         -2: infeasible, the minimum is not zero
@@ -184,7 +191,7 @@ def linprog_primal(c, A, b, **argv):
         eps: tolerance
         max_iter: max number of iteration
     Return: 
-        success: (basis, x, lambda)
+        success: Optimum
         fail:
         -1: illegal
         -2: unbounded

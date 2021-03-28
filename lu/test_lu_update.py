@@ -9,6 +9,7 @@ from lu.ft_update import lu_update_col
 from lu.pf_update import PF
 from lu.utils import inv_idx
 from lu.utils import piv2idx
+from lu.dense import LADense
 
 
 def test_piv2idx():
@@ -59,7 +60,7 @@ def test_pf_update():
     Bt = B0.T
     eye = np.eye(size)
     aq = eye[0]
-    pf = PF()
+    pf = PF(LADense)
     pf.factor(B0)
     af0 = np.copy(aq)
     af0 = pf.ftrans(af0)

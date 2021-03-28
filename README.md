@@ -46,6 +46,7 @@ If the optimum value is zero, then the problem is feasible.
 #### decomposition.py
 1. Dantzig Wolfe Decomposition
 
+### bnb
 #### branch_cut.py
 1. branch and bound
 1. Gomory cut
@@ -54,8 +55,11 @@ If the optimum value is zero, then the problem is feasible.
 #### pf_update.py
 1. product form update
 
-#### factorization.py
+#### ft_update.py
 1. FT-like update
+
+#### dense.py
+1. LU factorization for dense matrices
 
 ### Graph
 

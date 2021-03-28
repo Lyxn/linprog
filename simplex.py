@@ -1,14 +1,7 @@
 # encode=utf8
 """
-## Tips
-1. Algorithm will fail when the basis is singular. 
-   One could increase `eps` to avoid the bad column with nearly zero cost. 
-
 ## TODO
 * Support box constraint
-* Phrase 1
-* Presolve
-    ** Reduction of inequality, find non-extremal variable
 """
 from __future__ import print_function
 
@@ -18,6 +11,7 @@ import numpy as np
 
 from base import Optimum
 from lu.pf_update import PF
+from lu.utils import copy_arr
 
 
 def align_basis(x_b, basis, dim):
@@ -78,6 +72,10 @@ def simplex_revised(c, A, b, basis, **argv):
     pf = PF()
     pf.factor(A.take(basis, axis=1))
     cir = 50
+    # basis variable
+    x_b = np.zeros(row)
+    lmbd = np.zeros(row)
+    z0 = 0
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
@@ -85,8 +83,10 @@ def simplex_revised(c, A, b, basis, **argv):
         D = A.take(nonbasis, axis=1)
         c_d = c[nonbasis]
         # solve system B
-        x_b = pf.ftrans(b)
-        lmbd = pf.btrans(c_b)
+        copy_arr(b, x_b)
+        x_b = pf.ftrans(x_b)
+        copy_arr(c_b, lmbd)
+        lmbd = pf.btrans(lmbd)
         r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         if debug:
@@ -108,7 +108,8 @@ def simplex_revised(c, A, b, basis, **argv):
         ind_new = nonbasis[neg_ind[0]]
         # pivot
         a_q = A.take(ind_new, axis=1)
-        y_q = pf.ftrans(a_q)
+        y_q = np.copy(a_q)
+        y_q = pf.ftrans(y_q)
         pos_ind = [i for i in range(len(y_q)) if is_pos(y_q[i])]
         if len(pos_ind) == 0:
             sys.stderr.write("Problem unbounded\n")
@@ -170,6 +171,10 @@ def simplex_dual(c, A, b, basis, **argv):
     pf = PF()
     pf.factor(A.take(basis, axis=1))
     cir = 50
+    # basis variable
+    x_b = np.zeros(row)
+    lmbd = np.zeros(row)
+    z0 = 0
     # iteration
     for itr in range(max_iter):
         nonbasis = [i for i in range(col) if i not in basis]
@@ -177,8 +182,10 @@ def simplex_dual(c, A, b, basis, **argv):
         D = A.take(nonbasis, axis=1)
         c_d = c[nonbasis]
         # solve system B
-        x_b = pf.ftrans(b)
-        lmbd = pf.btrans(c_b)
+        copy_arr(b, x_b)
+        x_b = pf.ftrans(x_b)
+        copy_arr(c_b, lmbd)
+        lmbd = pf.btrans(lmbd)
         r_d = c_d - lmbd.dot(D)
         z0 = np.dot(x_b, c_b)
         # check dual feasible
@@ -219,8 +226,8 @@ def simplex_dual(c, A, b, basis, **argv):
         if (itr + 1) % cir == 0:
             pf.factor(A.take(basis, axis=1))
         else:
-            aq = A.take(ind_new, axis=1)
-            aqf = pf.ftrans(aq)
+            aqf = np.copy(A.take(ind_new, axis=1))
+            aqf = pf.ftrans(aqf)
             pf.update(aqf, out)
         if debug:
             print("y_q\t%s" % str(y_q))

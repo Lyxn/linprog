@@ -99,7 +99,7 @@ def btrans_upper(mat, x):
     return x
 
 
-class LA(object):
+class LADense(object):
     def __init__(self):
         self.n = 0
         self.lu = None

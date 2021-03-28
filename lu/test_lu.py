@@ -75,7 +75,7 @@ def test_la():
     mat = np.random.randn(n, n) * alpha + np.eye(n)
     m0 = np.copy(mat)
     # print("Matrix\n%s" % mat)
-    la = LA()
+    la = LADense()
     la.factor(mat)
     rows = piv2idx(la.p)
     cols = piv2idx(la.q)

@@ -1,4 +1,5 @@
 # encode: utf8
+import numpy as np
 
 from lu.factor import LAScipy
 
@@ -26,12 +27,15 @@ class EtaCol:
 
 
 class PF:
-    def __init__(self, la=LAScipy):
+    def __init__(self, la=None):
+        if la is None:
+            la = LAScipy
         self.lu_factor = la()
         self.factors = []
 
     def factor(self, B):
-        self.lu_factor.factor(B)
+        B1 = np.copy(B)
+        self.lu_factor.factor(B1)
         self.factors = []
 
     def ftrans(self, x):

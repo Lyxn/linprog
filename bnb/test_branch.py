@@ -1,8 +1,8 @@
 # encode: utf8
 import numpy as np
 
-from branch_cut import branch_bound
-from branch_cut import proc_gomory_cut
+from bnb.branch_cut import branch_bound
+from bnb.branch_cut import proc_gomory_cut
 from linprog import form_standard
 from linprog import linprog_primal
 
