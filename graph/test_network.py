@@ -6,13 +6,13 @@ from graph.network_simplex import *
 
 def test_read_network():
     print("\nTest Network")
-    file_nwk = "./data/small.nwk"
+    file_nwk = "../data/small.nwk"
     nwk = Network()
     nwk = read_network(file_nwk, nwk)
     print(nwk)
 
     print("\nTest Network")
-    file_nwk = "./data/shortestpath.nwk"
+    file_nwk = "../data/shortestpath.nwk"
     nwk = Network()
     nwk = read_network(file_nwk, nwk)
     print(nwk)
@@ -20,7 +20,7 @@ def test_read_network():
 
 def test_shortest_path():
     print("\nTest Shortest Path")
-    file_nwk = "./data/shortestpath.nwk"
+    file_nwk = "../data/shortestpath.nwk"
     nwk = Network()
     nwk = read_network(file_nwk, nwk)
     src = 0
@@ -39,7 +39,7 @@ def test_shortest_path():
 
 def test_init_tree():
     print("\nTest Init Tree")
-    file_nwk = "./data/test.nwk"
+    file_nwk = "../data/test.nwk"
     nwk = TreeAPI()
     read_network(file_nwk, nwk)
     arc_pr = [(3, 0), (3, 2), (1, 2), (4, 1)]
@@ -50,7 +50,7 @@ def test_init_tree():
 
 def test_network_simplex0():
     print("\nTest Network Simplex 0")
-    file_nwk = "./data/test.nwk"
+    file_nwk = "../data/test.nwk"
     nwk = TreeAPI()
     read_network(file_nwk, nwk)
     arc_pr = [(3, 0), (3, 2), (1, 2), (4, 1)]
@@ -61,7 +61,7 @@ def test_network_simplex0():
 
 def test_network_simplex1():
     print("\nTest Network Simplex 1")
-    file_nwk = "./data/small.nwk"
+    file_nwk = "../data/small.nwk"
     nwk = TreeAPI()
     read_network(file_nwk, nwk)
     arc_pr = [(4, 0), (0, 2), (3, 0), (2, 1)]
@@ -77,7 +77,7 @@ def test_network_simplex_artificial():
     # file_nwk = "./data/test.nwk"
     # file_nwk = "./data/small.nwk"
     # file_nwk = "./data/shortestpath.nwk"
-    fmt_name = lambda x: "./data/%s.nwk" % x
+    fmt_name = lambda x: "../data/%s.nwk" % x
     nwk_name = ["test", "small", "shortestpath"]
     nwk_list = [fmt_name(x) for x in nwk_name]
     for file_nwk in nwk_list:

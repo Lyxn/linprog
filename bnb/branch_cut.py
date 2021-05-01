@@ -4,9 +4,9 @@ from __future__ import print_function
 import sys
 
 import numpy as np
-from scipy import linalg
 
 from linprog import form_standard
+from lu.factor import LAScipy
 from simplex import simplex_dual
 from utils import floor_residue
 from utils import get_unit_vector
@@ -216,17 +216,18 @@ def branch_bound(c, A_eq, b_eq, basis, int_idx=None, **argv):
 
 def get_gomory_cut(A, x_basis, basis, cut_idx, **argv):
     # argv
-    lu_basis = argv.get("lu_basis")
+    lu_factor = argv.get("lu_factor")
     # init
     row, col = A.shape
     nonbasis = [i for i in range(col) if i not in basis]
     B = A.take(basis, axis=1)
     D = A.take(nonbasis, axis=1)
-    if lu_basis is None:
-        lu_basis = linalg.lu_factor(B)
+    if lu_factor is None:
+        lu_factor = LAScipy()
+        lu_factor.factor(B)
     # calc y_cut
     e_c = get_unit_vector(row, cut_idx)
-    u_c = linalg.lu_solve(lu_basis, e_c, trans=1)
+    u_c = lu_factor.btrans(e_c)
     y_c = D.T.dot(u_c)
     b_cut = -floor_residue(x_basis[cut_idx])
     y_res = [-floor_residue(y) for y in y_c]
@@ -241,8 +242,9 @@ def proc_gomory_cut(c, A, b, basis, **argv):
     max_iter_sub = argv.get("max_iter_sub", 10000)
     debug = argv.get("debug", False)
     int_idx = argv.get("int_idx", None)
-    lu_basis = argv.get("lu_basis")
+    lu_factor = argv.get("lu_factor")
     x_basis = argv.get("x_basis")
+    opt = None
     # init
     row_raw = len(b)
     col_raw = len(c)
@@ -255,11 +257,12 @@ def proc_gomory_cut(c, A, b, basis, **argv):
     for itr in range(max_iter):
         row, col = A_tot.shape
         nonbasis = [i for i in range(col) if i not in basis]
-        if lu_basis is None:
+        if lu_factor is None:
+            lu_factor = LAScipy()
             B = A_tot.take(basis, axis=1)
-            lu_basis = linalg.lu_factor(B)
+            lu_factor.factor(B)
         if x_basis is None:
-            x_basis = linalg.lu_solve(lu_basis, b_tot)
+            x_basis = lu_factor.ftrans(b_tot)
         cut_idx = None
         cut_val = None
         for i in range(row):
@@ -278,7 +281,7 @@ def proc_gomory_cut(c, A, b, basis, **argv):
             print("basis\t%s" % str(basis))
             print("x_basis\t%s" % x_basis)
             print("cut_idx\t%s" % cut_idx)
-        y_cut, b_cut = get_gomory_cut(A_tot, x_basis, basis, cut_idx, lu_basis=lu_basis)
+        y_cut, b_cut = get_gomory_cut(A_tot, x_basis, basis, cut_idx, lu_factor=lu_factor)
         cid = len(cut_pool)
         cut_pool[cid] = (y_cut, b_cut)
         ## add cut
@@ -300,7 +303,7 @@ def proc_gomory_cut(c, A, b, basis, **argv):
             return -1
         basis = opt.basis
         x_basis = opt.x_basis
-        lu_basis = opt.lu_basis
+        lu_factor = opt.lu_factor
         if debug:
             print(opt)
 

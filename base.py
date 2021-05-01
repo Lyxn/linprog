@@ -10,7 +10,7 @@ class Optimum(object):
         self.lmbd_opt = argv.get("lmbd_opt")
         self.basis = argv.get("basis")
         self.x_basis = argv.get("x_basis")
-        self.lu_basis = argv.get("lu_basis")
+        self.lu_factor = argv.get("lu_factor")
         self.inv_basis = argv.get("inv_basis")
         self.num_iter = argv.get("num_iter", 0)
         self.num_col = len(self.x_opt) if self.x_opt is not None else 0
