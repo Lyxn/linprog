@@ -6,6 +6,7 @@ import numpy as np
 from linprog import linprog_primal
 from simplex import simplex_dual
 from simplex import simplex_revised
+from utils import to_array
 
 DEBUG = True
 
@@ -22,10 +23,7 @@ def test_revised():
     basis = [3, 4, 5]
     num_slack = 3
     opt_val = -5.4
-    c = np.array(c)
-    A = np.array(A)
-    b = np.array(b)
-    basis = np.array(basis)
+    c = to_array(c)
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, np.eye(num_slack)), axis=1)
     print("\nTest Revised Simplex")
@@ -48,8 +46,7 @@ def test_dual0():
     A = [[1, 2, 3], [2, 2, 1]]
     basis = [3, 4]
     opt_val = 11
-    b = np.array(b)
-    basis = np.array(basis)
+    b = to_array(b)
     num_slack = 2
     c = np.concatenate((c, np.zeros(num_slack)))
     A = np.concatenate((A, -np.eye(num_slack)), axis=1)
@@ -68,8 +65,7 @@ def test_dual1():
     b = [-2, -3]
     A = [[-2, -1, -4, 0], [-2, -2, 0, -4]]
     basis = [4, 5]
-    b = np.array(b)
-    basis = np.array(basis)
+    b = to_array(b)
     num_slack = 2
     opt_val = 14
     c = np.concatenate((c, np.zeros(num_slack)))

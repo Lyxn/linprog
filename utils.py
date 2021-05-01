@@ -4,6 +4,14 @@ from __future__ import print_function
 import numpy as np
 
 
+def to_array(x):
+    return np.array(x, dtype=float)
+
+
+def to_array_list(lst):
+    return [to_array(x) for x in lst]
+
+
 def get_unit_vector(dim, idx):
     unit = np.zeros(dim)
     unit[idx] = 1

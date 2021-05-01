@@ -4,6 +4,7 @@ from linprog import find_null_variable
 from linprog import linprog
 from linprog import reduce_equation
 from linprog import simplex_revised
+from utils import to_array
 
 
 def test_reduce_equation():
@@ -11,13 +12,12 @@ def test_reduce_equation():
     c = [4, 3, 2, 1]
     A = [[2, 3, 4, 4], [1, 1, 2, 1]]
     b = [6, 3]
-    c = np.array(c)
-    A = np.array(A)
-    b = np.array(b)
+    c = to_array(c)
+    A = to_array(A)
+    b = to_array(b)
     print("Primal Problem")
-    # TODO fix infeasible
     ret = linprog(c, A_eq=A, b_eq=b)
-    assert type(ret) == int
+    assert type(ret) != int
     row, col = A.shape
     c_s = np.concatenate((np.zeros(col), np.ones(row)))
     A_s = np.concatenate((A, np.eye(row)), axis=1)
